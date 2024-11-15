@@ -1,0 +1,9 @@
+<h1>Listado de Productos</h1>
+{% for product in products %}
+    <h2>{{ product.title }}</h2>
+    <p>{{ product.description }}</p>
+    <p>{{ product.price }} €</p>
+    <a href="{% url 'product_detail' product.pk %}">Ver Detalles</a>
+{% empty %}
+    <p>No hay productos disponibles.</p>
+{% endfor %}

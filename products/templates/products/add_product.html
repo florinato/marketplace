@@ -1,0 +1,89 @@
+<!-- templates/products/add_product.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir Producto - Wallaclone</title>
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    <style>
+        .main-container { max-width: 800px; margin: 2rem auto; background-color: #ffffff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .section-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem; }
+        .thumbnail-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 1rem; }
+        .thumbnail { width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; background-color: #f4f4f4; border: 2px dashed #ddd; border-radius: 8px; font-size: 24px; color: #aaa; position: relative; overflow: hidden; cursor: pointer; }
+        .thumbnail img { width: 100%; height: 100%; object-fit: cover; display: none; border-radius: 8px; }
+        .thumbnail:first-child::after { content: 'Foto principal'; position: absolute; bottom: -20px; font-size: 0.75rem; color: #555; width: 100%; text-align: center; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-control { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+        .submit-btn { background-color: #4CAF50; color: #fff; padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; margin-top: 1rem; width: 100%; text-align: center; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <header class="bg-white shadow-md py-4">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <h1 class="text-2xl font-bold text-green-600">Wallaclone</h1>
+            <a href="{% url 'home' %}" class="text-blue-500">Volver a la lista</a>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <h2 class="text-2xl font-bold text-gray-700 mb-4">Información del producto</h2>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_title">Título</label>
+                {{ product_form.title }}
+            </div>
+            <div class="form-group">
+                <label for="id_description">Descripción</label>
+                {{ product_form.description }}
+            </div>
+            <div class="form-group">
+                <label for="id_price">Precio</label>
+                {{ product_form.price }}
+            </div>
+            <div class="form-group">
+                <label for="id_location">Ubicación</label>
+                {{ product_form.location }}
+            </div>
+
+            <!-- Sección de fotos -->
+            <div class="section">
+                <div class="section-title">Fotos</div>
+                <div class="thumbnail-container">
+                    <!-- Imagen principal -->
+                    <label class="thumbnail">
+                        <input type="file" name="main_image" accept="image/*" style="display: none;" onchange="previewImage(event, 0)">
+                        <img id="preview-main-image" src="" alt="Vista previa">
+                        📷
+                    </label>
+                    <!-- Imágenes adicionales -->
+                    {% for i in "1234" %}
+                        <label class="thumbnail">
+                            <input type="file" name="images" accept="image/*" style="display: none;" onchange="previewImage(event, {{ forloop.counter }})">
+                            <img id="preview-image-{{ forloop.counter }}" src="" alt="Vista previa">
+                            📷
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">Subir Producto</button>
+        </form>
+    </div>
+
+    <script>
+        // Función para mostrar la imagen seleccionada como vista previa
+        function previewImage(event, index) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const preview = document.getElementById(index === 0 ? 'preview-main-image' : `preview-image-${index}`);
+                preview.src = reader.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    </script>
+</body>
+</html>

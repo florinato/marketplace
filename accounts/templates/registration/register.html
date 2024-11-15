@@ -1,0 +1,26 @@
+<!-- accounts/templates/accounts/register.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Wallaclone</title>
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800 flex justify-center items-center h-screen">
+    <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+        <h2 class="text-2xl font-semibold text-center mb-4">Registro</h2>
+        {% if messages %}
+            {% for message in messages %}
+                <p class="text-red-500">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="w-full bg-green-500 text-white py-2 px-4 rounded mt-4 hover:bg-green-600">Registrarse</button>
+        </form>
+    </div>
+</body>
+</html>

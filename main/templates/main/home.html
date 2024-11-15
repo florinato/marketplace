@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido a Wallaclone</title>
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+    <!-- Encabezado -->
+    <header class="bg-white shadow-md py-4">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <h1 class="text-2xl font-bold text-green-600">Wallaclone</h1>
+            <div class="flex items-center space-x-4">
+                {% if user.is_authenticated %}
+                    <!-- Formulario de logout con método POST -->
+                    <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="text-gray-600">Logout</button>
+                    </form>
+                    <a href="#" class="text-gray-600">💬</a>
+                    <a href="#" class="text-gray-600">🔔</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-gray-600">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+
+
+    <!-- Bienvenida y Barra de Búsqueda -->
+    <div class="container mx-auto my-8 px-4">
+        <h2 class="text-3xl font-semibold mb-2">Bienvenido a Wallaclone</h2>
+        <p class="text-gray-600 mb-4">Explora los productos disponibles o utiliza la búsqueda para encontrar algo específico.</p>
+
+        <!-- Barra de Búsqueda -->
+        <div class="flex items-center mb-8 space-x-2">
+            <input type="text" placeholder="¿Qué estás buscando?" class="w-full p-3 rounded-full border border-gray-300 outline-none focus:ring-2 focus:ring-green-600">
+            <button class="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600">Buscar</button>
+            <button class="bg-gray-200 text-gray-600 px-4 py-2 rounded-full">Filtros</button>
+        </div>
+
+    <!-- Listado de Productos -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        {% for product in products %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <img src="{{ product.main_image.url }}" alt="{{ product.title }}" class="w-full object-contain rounded-md">
+                <div class="p-4">
+                    <h3 class="text-lg font-bold text-gray-800 truncate">{{ product.title }}</h3>
+                    <p class="text-green-600 font-semibold text-xl">{{ product.price }}€</p>
+                    <p class="text-gray-500 text-sm flex items-center">📍 {{ product.location }}</p>
+                    {% if product.pk %}
+                        <a href="{% url 'product_detail' product.pk %}" class="text-blue-500 mt-4 block">Ver Detalles</a>
+                    {% else %}
+                        <span class="text-red-500 mt-4 block">Producto no disponible</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-gray-500">No hay productos disponibles.</p>
+        {% endfor %}
+    </div>
+
+    </div>
+
+    <!-- Navegación Inferior -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white shadow-md py-2 flex justify-around border-t border-gray-200">
+        <a href="#" class="text-center text-green-600">
+            <span class="block text-2xl">🏠</span>
+            <span class="text-sm">Inicio</span>
+        </a>
+        <a href="#" class="text-center text-gray-600">
+            <span class="block text-2xl">🔍</span>
+            <span class="text-sm">Explorar</span>
+        </a>
+        <a href="{% url 'add_product' %}" class="text-center text-green-600">
+            <span class="block text-2xl">➕</span>
+            <span class="text-sm">Subir</span>
+        </a>
+        <a href="#" class="text-center text-gray-600">
+            <span class="block text-2xl">👤</span>
+            <span class="text-sm">Perfil</span>
+        </a>
+    </nav>
+</body>
+</html>
