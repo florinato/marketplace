@@ -21,14 +21,17 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
+from .views import home
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('main.urls')),  # Página de inicio
+    path('', home, name='home'),
     path('products/', include('products.urls')),  # Rutas de productos
     path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('accounts/', include('accounts.urls')),
-    
+    path('chat/', include('chat.urls')),
+    path('admin/', admin.site.urls),
+
 ]
 # Servir archivos de medios en modo de desarrollo
 if settings.DEBUG:

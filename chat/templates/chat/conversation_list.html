@@ -1,0 +1,23 @@
+<!--templates/chat/conversation_list.html-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Conversaciones</title>
+</head>
+<body>
+    <h1>Mis Conversaciones</h1>
+    <ul>
+        {% for conversation in conversations %}
+            <li>
+                <a href="{% url 'chat:conversation_detail' conversation.pk %}">
+                    Conversación con {{ conversation.participants.exclude(pk=request.user.pk).first }}
+                </a>
+            </li>
+        {% empty %}
+            <li>No tienes conversaciones.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

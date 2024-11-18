@@ -33,7 +33,11 @@ def add_product(request):
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
     images = product.images.all()
-    return render(request, 'products/product_detail.html', {'product': product, 'images': images})
+    return render(request, 'products/product_detail.html', {
+        'product': product,
+        'images': images,
+    })
+
 
 
 

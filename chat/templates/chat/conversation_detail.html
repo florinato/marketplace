@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversación</title>
+</head>
+<body>
+    <h1>Conversación con {{ conversation.participants.exclude(pk=request.user.pk).first }}</h1>
+    <ul>
+        {% for message in messages %}
+            <li>
+                <strong>{{ message.sender }}:</strong> {{ message.content }}
+                <span>({{ message.timestamp }})</span>
+            </li>
+        {% endfor %}
+    </ul>
+    <form method="POST" action="{% url 'chat:send_message' conversation.pk %}">
+        {% csrf_token %}
+        <textarea name="content" placeholder="Escribe tu mensaje..."></textarea>
+        <button type="submit">Enviar</button>
+    </form>
+</body>
+</html>

@@ -7,5 +7,5 @@ __pycache__/
 .vscode/
 .env
 *.log
-# Entorno virtual
-.venv/
+media/           # Ignorar imágenes subidas
+.venv/           # Ignorar el entorno virtual

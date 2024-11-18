@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu Perfil - Wallaclone</title>
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <header class="bg-white shadow-md py-4">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <h1 class="text-2xl font-bold text-green-600">Wallaclone</h1>
+            <a href="{% url 'logout' %}" class="text-red-500">Cerrar Sesión</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto my-8 px-4">
+        <h2 class="text-3xl font-semibold mb-4">Tu Perfil</h2>
+
+        <!-- Información del perfil -->
+        <div class="bg-white p-4 rounded shadow mb-6">
+            <div class="flex items-center space-x-4">
+                {% if profile.profile_image %}
+                <img src="{{ profile.profile_image.url }}" alt="Foto de perfil" class="w-16 h-16 rounded-full">
+                {% else %}
+                <img src="/static/images/default_profile.png" alt="Foto predeterminada" class="w-16 h-16 rounded-full">
+                {% endif %}
+                <div>
+                    <h3 class="text-xl font-semibold">{{ request.user.username }}</h3>
+                    <p class="text-gray-600">{{ profile.bio|default:"Añade una descripción" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos publicados -->
+        <div class="bg-white p-4 rounded shadow">
+            <h3 class="text-xl font-semibold mb-4">Tus Productos</h3>
+            {% if products %}
+                <ul class="divide-y divide-gray-200">
+                    {% for product in products %}
+                        <li class="py-2 flex justify-between items-center">
+                            <span>{{ product.title }}</span>
+                            <a href="{% url 'product_detail' product.id %}" class="text-blue-500">Ver</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-gray-600">No tienes productos publicados.</p>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

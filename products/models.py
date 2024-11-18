@@ -8,7 +8,6 @@ class Product(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    location = models.CharField(max_length=100)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     condition = models.CharField(max_length=50, blank=True, null=True, default="Nuevo")
     main_image = models.ImageField(upload_to='products/', blank=True, null=True)
