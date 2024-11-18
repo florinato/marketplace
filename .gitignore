@@ -7,5 +7,6 @@ __pycache__/
 .vscode/
 .env
 *.log
-media/           # Ignorar imágenes subidas
-.venv/           # Ignorar el entorno virtual
+media/*
+!media/.gitkeep
+.venv/
