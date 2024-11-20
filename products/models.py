@@ -8,13 +8,18 @@ class Product(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="products")
     condition = models.CharField(max_length=50, blank=True, null=True, default="Nuevo")
     main_image = models.ImageField(upload_to='products/', blank=True, null=True)
     tags = models.CharField(max_length=100, blank=True, null=True, default="")
+    is_reserved = models.BooleanField(default=False)
+    buyer = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name="purchases")
 
     def __str__(self):
         return self.title
+
+
+
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)

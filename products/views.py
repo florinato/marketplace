@@ -1,7 +1,8 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import ProductForm, ProductImageForm
+from .forms import ProductForm
 from .models import Product, ProductImage
 
 # products/views.py
@@ -36,10 +37,20 @@ def product_detail(request, pk):
     return render(request, 'products/product_detail.html', {
         'product': product,
         'images': images,
+        'user': request.user,
     })
 
-
-
+@login_required
+def reserve_product(request, product_id):
+    product = Product.objects.get(id=product_id)
+    if not product.is_reserved:  # O un campo similar para verificar si está reservado
+        product.is_reserved = True
+        product.buyer = request.user
+        product.save()
+        messages.success(request, "Has reservado este producto exitosamente.")
+    else:
+        messages.error(request, "Este producto ya está reservado.")
+    return redirect('product_detail', product_id=product.id)
 
 
 

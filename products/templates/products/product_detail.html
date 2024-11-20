@@ -1,4 +1,3 @@
-<!-- templates/products/product_detail.html -->
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
@@ -30,7 +29,7 @@
         .carousel-container {
             position: relative;
             max-width: 100%;
-            height: 500px;
+            height: 400px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -44,32 +43,10 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            transition: opacity 0.3s ease;
             display: none; /* Oculta todas las imágenes inicialmente */
         }
         .carousel-image.active {
             display: block; /* Muestra solo la imagen activa */
-        }
-        /* Controles del carrusel */
-        .carousel-control {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(255, 255, 255, 0.8);
-            border: none;
-            border-radius: 50%;
-            padding: 0.5rem;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .carousel-control:hover {
-            background-color: rgba(255, 255, 255, 1);
-        }
-        .carousel-control.left {
-            left: 10px;
-        }
-        .carousel-control.right {
-            right: 10px;
         }
         /* Vista previa de miniaturas */
         .thumbnail-container {
@@ -91,10 +68,25 @@
             opacity: 1;
             border: 2px solid #4CAF50;
         }
-        /* Detalles del producto */
-        .product-details {
+        /* Botón de reserva */
+        .reserve-btn {
             margin-top: 1rem;
-            text-align: left;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+        }
+        .reserve-btn.reserved {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .reserve-btn.available {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        .reserve-btn.available:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
@@ -116,15 +108,10 @@
                 {% if product.main_image %}
                     <img src="{{ product.main_image.url }}" alt="{{ product.title }}" class="carousel-image active">
                 {% endif %}
-
                 <!-- Imágenes adicionales -->
-                {% for image in images %}
+                {% for image in product.images.all %}
                     <img src="{{ image.image.url }}" alt="{{ product.title }}" class="carousel-image">
                 {% endfor %}
-
-                <!-- Controles de navegación -->
-                <button onclick="previousSlide()" class="carousel-control left">⬅️</button>
-                <button onclick="nextSlide()" class="carousel-control right">➡️</button>
             </div>
 
             <!-- Vista previa de miniaturas -->
@@ -132,7 +119,7 @@
                 {% if product.main_image %}
                     <img src="{{ product.main_image.url }}" onclick="goToSlide(0)" class="thumbnail-image active">
                 {% endif %}
-                {% for image in images %}
+                {% for image in product.images.all %}
                     <img src="{{ image.image.url }}" onclick="goToSlide({{ forloop.counter }})" class="thumbnail-image">
                 {% endfor %}
             </div>
@@ -146,11 +133,35 @@
                     <h3 class="text-xl font-semibold mb-2">Descripción</h3>
                     <p>{{ product.description }}</p>
                 </div>
+
+                <!-- Botón de Reservar -->
+                <div class="mt-6 text-center">
+                    {% if user.is_authenticated %}
+                        {% if user != product.user %}
+                            <form method="POST" action="{% url 'reserve_product' product.id %}">
+                                {% csrf_token %}
+                                {% if product.is_reserved %}
+                                    <button type="button" class="reserve-btn reserved" disabled>
+                                        Reservado
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="reserve-btn available">
+                                        Reservar
+                                    </button>
+                                {% endif %}
+                            </form>
+                        {% else %}
+                            <p class="text-gray-500 mt-4">Eres el propietario de este producto.</p>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-red-500 mt-4">Debes iniciar sesión para reservar este producto.</p>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript para el carrusel y miniaturas -->
+    <!-- JavaScript para el carrusel -->
     <script>
         let currentSlide = 0;
         const slides = document.querySelectorAll('.carousel-image');
@@ -182,4 +193,3 @@
     </script>
 </body>
 </html>
-

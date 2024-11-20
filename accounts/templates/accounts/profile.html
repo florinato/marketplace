@@ -4,51 +4,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tu Perfil - Wallaclone</title>
+    <title>Perfil de Usuario - Wallaclone</title>
     <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    <style>
+        .active-tab {
+            font-weight: bold;
+            border-bottom: 2px solid #4CAF50;
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
+    <!-- Encabezado -->
     <header class="bg-white shadow-md py-4">
         <div class="container mx-auto flex justify-between items-center px-4">
             <h1 class="text-2xl font-bold text-green-600">Wallaclone</h1>
-            <a href="{% url 'logout' %}" class="text-red-500">Cerrar Sesión</a>
+            <a href="{% url 'home' %}" class="text-blue-500">Volver al inicio</a>
         </div>
     </header>
 
-    <main class="container mx-auto my-8 px-4">
+    <!-- Contenedor principal -->
+    <div class="container mx-auto my-8 px-4">
         <h2 class="text-3xl font-semibold mb-4">Tu Perfil</h2>
 
-        <!-- Información del perfil -->
-        <div class="bg-white p-4 rounded shadow mb-6">
-            <div class="flex items-center space-x-4">
-                {% if profile.profile_image %}
-                <img src="{{ profile.profile_image.url }}" alt="Foto de perfil" class="w-16 h-16 rounded-full">
-                {% else %}
-                <img src="/static/images/default_profile.png" alt="Foto predeterminada" class="w-16 h-16 rounded-full">
-                {% endif %}
-                <div>
-                    <h3 class="text-xl font-semibold">{{ request.user.username }}</h3>
-                    <p class="text-gray-600">{{ profile.bio|default:"Añade una descripción" }}</p>
-                </div>
-            </div>
-        </div>
+        <!-- Navegación de pestañas -->
+        <nav class="flex space-x-4 mb-6">
+            <a href="?tab=info" class="py-2 px-4 {% if active_tab == 'info' %}active-tab{% endif %}">Mi Perfil</a>
+            <a href="?tab=products" class="py-2 px-4 {% if active_tab == 'products' %}active-tab{% endif %}">Mis Productos</a>
+            <a href="?tab=add_product" class="py-2 px-4 {% if active_tab == 'add_product' %}active-tab{% endif %}">Subir Producto</a>
+            <a href="?tab=purchases" class="py-2 px-4 {% if active_tab == 'purchases' %}active-tab{% endif %}">Mis Compras</a>
+            <a href="?tab=chats" class="py-2 px-4 {% if active_tab == 'chats' %}active-tab{% endif %}">Chats</a>
+        </nav>
 
-        <!-- Productos publicados -->
-        <div class="bg-white p-4 rounded shadow">
-            <h3 class="text-xl font-semibold mb-4">Tus Productos</h3>
-            {% if products %}
-                <ul class="divide-y divide-gray-200">
-                    {% for product in products %}
-                        <li class="py-2 flex justify-between items-center">
-                            <span>{{ product.title }}</span>
-                            <a href="{% url 'product_detail' product.id %}" class="text-blue-500">Ver</a>
-                        </li>
-                    {% endfor %}
-                </ul>
+        <!-- Contenido de las pestañas -->
+        <div class="bg-white p-6 rounded shadow">
+            {% if active_tab == 'info' %}
+                <!-- Mi Perfil -->
+                <div>
+                    <h3 class="text-2xl font-semibold mb-4">Información de Usuario</h3>
+                    <div class="flex items-center space-x-4">
+                        <img src="{% if user.profile.profile_image %}{{ user.profile.profile_image.url }}{% else %}/media/profile_images/default_profile.jpg{% endif %}" 
+                             alt="Foto de perfil" 
+                             class="w-16 h-16 rounded-full">
+
+                        <div>
+                            <p class="text-lg"><strong>Nombre:</strong> {{ user.username }}</p>
+                            <p class="text-lg"><strong>Email:</strong> {{ user.email }}</p>
+                            <p class="text-gray-600">{{ user.profile.bio|default:"Añade una descripción a tu perfil" }}</p>
+                            <a href="#" class="text-blue-500">Editar Perfil</a>
+                        </div>
+                    </div>
+                </div>
+            {% elif active_tab == 'products' %}
+                <!-- Mis Productos -->
+                <div>
+                    <h3 class="text-2xl font-semibold mb-4">Mis Productos</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                        {% for product in products %}
+                            <div class="bg-white rounded-lg shadow-md p-4">
+                                <img src="{{ product.main_image.url }}" alt="{{ product.title }}" class="w-full h-32 object-cover rounded">
+                                <h4 class="text-lg font-bold">{{ product.title }}</h4>
+                                <p class="text-gray-600">{{ product.price }}€</p>
+                                <p class="text-sm {% if product.is_sold %}text-red-500{% endif %}">{{ product.is_sold|yesno:"Vendido,Disponible" }}</p>
+                                <a href="{% url 'product_detail' product.id %}" class="text-blue-500 mt-2 block">Ver Detalles</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% elif active_tab == 'add_product' %}
+                <!-- Subir Producto -->
+                <div class="main-container bg-white p-6 rounded shadow">
+                    <h3 class="text-2xl font-semibold mb-4">Subir Producto</h3>
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group mb-4">
+                            <label for="id_title" class="block text-gray-700 font-medium mb-2">Título</label>
+                            {{ product_form.title }}
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="id_description" class="block text-gray-700 font-medium mb-2">Descripción</label>
+                            {{ product_form.description }}
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="id_price" class="block text-gray-700 font-medium mb-2">Precio</label>
+                            {{ product_form.price }}
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="id_condition" class="block text-gray-700 font-medium mb-2">Condición</label>
+                            {{ product_form.condition }}
+                        </div>
+                
+                        <!-- Fotos -->
+                        <div class="form-group mb-4">
+                            <label class="block text-gray-700 font-medium mb-2">Fotos</label>
+                            <div class="flex space-x-4">
+                                <!-- Imagen Principal -->
+                                <div class="relative w-32 h-32 bg-gray-200 border rounded overflow-hidden">
+                                    <input type="file" name="main_image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(event, 'main')">
+                                    <img id="preview-main-image" src="" class="hidden w-full h-full object-cover" alt="Foto Principal">
+                                    <div id="placeholder-main" class="flex items-center justify-center h-full text-gray-500">📷 Foto Principal</div>
+                                </div>
+                
+                                <!-- Imágenes adicionales -->
+                                {% for i in "1234" %}
+                                <div class="relative w-32 h-32 bg-gray-200 border rounded overflow-hidden">
+                                    <input type="file" name="images" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(event, {{ forloop.counter }})">
+                                    <img id="preview-image-{{ forloop.counter }}" src="" class="hidden w-full h-full object-cover" alt="Foto Adicional">
+                                    <div id="placeholder-{{ forloop.counter }}" class="flex items-center justify-center h-full text-gray-500">📷 Foto Adicional</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                
+                        <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded">Subir Producto</button>
+                    </form>
+                </div>
+                
+                <script>
+                    function previewImage(event, index) {
+                        const reader = new FileReader();
+                        reader.onload = function () {
+                            // Selecciona el elemento correspondiente
+                            const preview = document.getElementById(index === 'main' ? 'preview-main-image' : `preview-image-${index}`);
+                            const placeholder = document.getElementById(index === 'main' ? 'placeholder-main' : `placeholder-${index}`);
+                            
+                            // Muestra la imagen y oculta el marcador
+                            preview.src = reader.result;
+                            preview.classList.remove('hidden');
+                            placeholder.classList.add('hidden');
+                        };
+                        // Lee el archivo seleccionado
+                        reader.readAsDataURL(event.target.files[0]);
+                    }
+                </script>
+            
+            {% elif active_tab == 'purchases' %}
+                <!-- Mis Compras -->
+                <div>
+                    <h3 class="text-2xl font-semibold mb-4">Historial de Compras</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                        {% for product in purchases %}
+                            <div class="bg-white rounded-lg shadow-md p-4">
+                                <img src="{{ product.main_image.url }}" alt="{{ product.title }}" class="w-full h-32 object-cover rounded">
+                                <h4 class="text-lg font-bold">{{ product.title }}</h4>
+                                <p class="text-gray-600">{{ product.price }}€</p>
+                                <p class="text-sm text-green-500">Comprado el {{ product.purchase_date }}</p>
+                                <a href="{% url 'product_detail' product.id %}" class="text-blue-500 mt-2 block">Ver Detalles</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% elif active_tab == 'chats' %}
+                <!-- Chats -->
+                <div>
+                    <h3 class="text-2xl font-semibold mb-4">Chats</h3>
+                    <p>Aquí aparecerán tus conversaciones.</p>
+                </div>
             {% else %}
-                <p class="text-gray-600">No tienes productos publicados.</p>
+                <p>Pestaña no encontrada.</p>
             {% endif %}
         </div>
-    </main>
+    </div>
 </body>
 </html>
