@@ -7,7 +7,6 @@
     <title>{{ product.title }} - Wallaclone</title>
     <link href="{% static 'css/output.css' %}" rel="stylesheet">
     <style>
-        /* Contenedor principal */
         .main-container {
             min-height: 100vh;
             display: flex;
@@ -15,7 +14,6 @@
             align-items: center;
             padding: 2rem;
         }
-        /* Contenedor del producto */
         .product-container {
             width: 100%;
             max-width: 800px;
@@ -25,7 +23,6 @@
             padding: 1.5rem;
             text-align: center;
         }
-        /* Carrusel de imágenes */
         .carousel-container {
             position: relative;
             max-width: 100%;
@@ -38,17 +35,15 @@
             background-color: #f0f0f0;
             border-radius: 12px;
         }
-        /* Imagen del carrusel */
         .carousel-image {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            display: none; /* Oculta todas las imágenes inicialmente */
+            display: none;
         }
         .carousel-image.active {
-            display: block; /* Muestra solo la imagen activa */
+            display: block;
         }
-        /* Vista previa de miniaturas */
         .thumbnail-container {
             display: flex;
             justify-content: center;
@@ -68,7 +63,6 @@
             opacity: 1;
             border: 2px solid #4CAF50;
         }
-        /* Botón de reserva */
         .reserve-btn {
             margin-top: 1rem;
             padding: 0.75rem 1.5rem;
@@ -91,7 +85,6 @@
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
-    <!-- Encabezado -->
     <header class="bg-white shadow-md py-4">
         <div class="container mx-auto flex justify-between items-center px-4">
             <h1 class="text-2xl font-bold text-green-600">Wallaclone</h1>
@@ -99,22 +92,17 @@
         </div>
     </header>
 
-    <!-- Contenedor principal del Producto -->
     <div class="main-container">
         <div class="product-container">
-            <!-- Carrusel de Imágenes -->
             <div class="carousel-container">
-                <!-- Imagen principal del producto -->
                 {% if product.main_image %}
                     <img src="{{ product.main_image.url }}" alt="{{ product.title }}" class="carousel-image active">
                 {% endif %}
-                <!-- Imágenes adicionales -->
                 {% for image in product.images.all %}
                     <img src="{{ image.image.url }}" alt="{{ product.title }}" class="carousel-image">
                 {% endfor %}
             </div>
 
-            <!-- Vista previa de miniaturas -->
             <div class="thumbnail-container">
                 {% if product.main_image %}
                     <img src="{{ product.main_image.url }}" onclick="goToSlide(0)" class="thumbnail-image active">
@@ -124,7 +112,6 @@
                 {% endfor %}
             </div>
 
-            <!-- Información del producto -->
             <div class="product-details">
                 <h2 class="text-3xl font-bold text-gray-800">{{ product.title }}</h2>
                 <p class="text-green-600 font-semibold text-2xl mb-2">{{ product.price }} €</p>
@@ -134,7 +121,6 @@
                     <p>{{ product.description }}</p>
                 </div>
 
-                <!-- Botón de Reservar -->
                 <div class="mt-6 text-center">
                     {% if user.is_authenticated %}
                         {% if user != product.user %}
@@ -157,11 +143,22 @@
                         <p class="text-red-500 mt-4">Debes iniciar sesión para reservar este producto.</p>
                     {% endif %}
                 </div>
+
+                <div class="mt-6 text-center">
+                    {% if user.is_authenticated and user != product.user %}
+                        <a href="{% url 'chat:start_conversation' product.conversation_hash %}" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                            Chatear con el vendedor
+                        </a>
+                    {% elif user == product.user %}
+                        <p class="text-gray-500 mt-4">Eres el propietario de este producto.</p>
+                    {% else %}
+                        <p class="text-red-500 mt-4">Debes iniciar sesión para contactar con el vendedor.</p>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript para el carrusel -->
     <script>
         let currentSlide = 0;
         const slides = document.querySelectorAll('.carousel-image');

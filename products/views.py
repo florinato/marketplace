@@ -1,11 +1,14 @@
+# products/views.py
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
+from chat.models import Conversation
+
 from .forms import ProductForm
 from .models import Product, ProductImage
 
-# products/views.py
 
 @login_required
 def add_product(request):
@@ -52,5 +55,17 @@ def reserve_product(request, product_id):
         messages.error(request, "Este producto ya está reservado.")
     return redirect('product_detail', product_id=product.id)
 
-
+@login_required
+def chat_with_seller(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    # Verificar si el usuario actual ya tiene una conversación con este producto
+    conversation = Conversation.objects.filter(product=product, participants=request.user).first()
+    
+    if not conversation:
+        # Crear una nueva conversación
+        conversation = Conversation.objects.create(product=product)
+        conversation.participants.add(request.user, product.user)
+    
+    # Redirigir al sistema de chat
+    return redirect('conversation_detail', conversation_id=conversation.id)
 

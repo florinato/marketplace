@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
+from chat.models import Conversation
 from products.forms import ProductForm
 from products.models import Product  # Importa modelos de productos
 from products.models import ProductImage
@@ -46,20 +47,20 @@ def register(request):
     return render(request, 'registration/register.html', {'form': form})
 
 
-# Vista principal del perfil con pestañas
-@login_required
+# Vista principal del perfil con pestañas@login_required
 def profile(request):
     tab = request.GET.get('tab', 'info')  # Tab por defecto: 'info'
+    context = {'active_tab': tab}
 
     if tab == 'info':
         # Datos para la pestaña de información del usuario
         user_profile = get_object_or_404(Profile, user=request.user)
-        context = {'active_tab': tab, 'user_profile': user_profile}
+        context.update({'user_profile': user_profile})
 
     elif tab == 'products':
         # Productos subidos por el usuario
         products = Product.objects.filter(user=request.user)
-        context = {'active_tab': tab, 'products': products}
+        context.update({'products': products})
 
     elif tab == 'add_product':
         # Lógica para subir producto
@@ -79,21 +80,22 @@ def profile(request):
                 return redirect(f"{reverse('profile')}?tab=products")
         else:
             product_form = ProductForm()
-        
-        context = {'active_tab': tab, 'product_form': product_form}
+
+        context.update({'product_form': product_form})
 
     elif tab == 'purchases':
         # Historial de compras del usuario
         purchases = Product.objects.filter(buyer=request.user)
-        context = {'active_tab': tab, 'purchases': purchases}
+        context.update({'purchases': purchases})
 
     elif tab == 'chats':
-        # Chats del usuario (lógica pendiente)
-        chats = []  # Aquí puedes conectar con el módulo de chat
-        context = {'active_tab': tab, 'chats': chats}
+        # Chats del usuario
+        conversations = Conversation.objects.filter(participants=request.user)
+        context.update({'conversations': conversations})
 
     else:
-        context = {'active_tab': 'info'}
+        # Tab no reconocida, redirigir a la pestaña por defecto
+        context.update({'active_tab': 'info'})
 
     return render(request, 'accounts/profile.html', context)
 

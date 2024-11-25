@@ -159,15 +159,34 @@
                         {% endfor %}
                     </div>
                 </div>
-            {% elif active_tab == 'chats' %}
-                <!-- Chats -->
+                {% elif active_tab == 'chats' %}
                 <div>
                     <h3 class="text-2xl font-semibold mb-4">Chats</h3>
-                    <p>Aquí aparecerán tus conversaciones.</p>
+                    {% if conversations %}
+                        <ul class="space-y-4">
+                            {% for conversation in conversations %}
+                            <li class="p-4 bg-white rounded shadow-md flex justify-between items-center">
+                                <div>
+                                    <p class="font-semibold">Conversación sobre: <span class="text-green-600">{{ conversation.product.title }}</span></p>
+                                    <p class="text-gray-500">
+                                        Con: 
+                                        {% for participant in conversation.participants.all %}
+                                            {% if participant != user %}
+                                                {{ participant.username }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </p>
+                                </div>
+                                <a href="{% url 'chat:conversation_detail' conversation.pk %}" 
+                                   class="text-blue-500 hover:underline">Ver conversación</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-gray-500">No tienes chats abiertos en este momento.</p>
+                    {% endif %}
                 </div>
-            {% else %}
-                <p>Pestaña no encontrada.</p>
-            {% endif %}
+                {% endif %}
         </div>
     </div>
 </body>

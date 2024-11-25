@@ -1,24 +1,99 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conversación</title>
+    <title>Chat - {{ conversation.product.title }}</title>
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+        .chat-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+        }
+        .messages {
+            max-height: 500px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+        .message {
+            margin-bottom: 1rem;
+        }
+        .message .sender {
+            font-weight: bold;
+        }
+        .message .timestamp {
+            font-size: 0.8rem;
+            color: gray;
+        }
+        .message .content {
+            margin-top: 0.5rem;
+        }
+        .message.mine {
+            text-align: right;
+        }
+        form {
+            display: flex;
+            gap: 0.5rem;
+        }
+        textarea {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: none;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
 </head>
 <body>
-    <h1>Conversación con {{ conversation.participants.exclude(pk=request.user.pk).first }}</h1>
-    <ul>
-        {% for message in messages %}
-            <li>
-                <strong>{{ message.sender }}:</strong> {{ message.content }}
-                <span>({{ message.timestamp }})</span>
-            </li>
-        {% endfor %}
-    </ul>
-    <form method="POST" action="{% url 'chat:send_message' conversation.pk %}">
-        {% csrf_token %}
-        <textarea name="content" placeholder="Escribe tu mensaje..."></textarea>
-        <button type="submit">Enviar</button>
-    </form>
+    <div class="chat-container">
+        <h1>Chat sobre: {{ conversation.product.title }}</h1>
+
+        <!-- Lista de mensajes -->
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message {% if message.sender == user %}mine{% endif %}">
+                    <div class="sender">
+                        {% if message.sender == user %}
+                            Tú
+                        {% else %}
+                            {{ message.sender.username }}
+                        {% endif %}
+                    </div>
+                    <div class="timestamp">{{ message.timestamp }}</div>
+                    <div class="content">{{ message.content }}</div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Formulario para enviar mensaje -->
+        <form method="POST" action="{% url 'chat:send_message' conversation.id %}">
+            {% csrf_token %}
+            <textarea name="content" rows="3" placeholder="Escribe tu mensaje..." required></textarea>
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
 </body>
 </html>
+
