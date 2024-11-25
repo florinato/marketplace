@@ -1,12 +1,30 @@
 # .gitignore
+# Dependencias de Node.js
 node_modules/
+
+# Archivos Python compilados
 *.pyc
 __pycache__/
+
+# Archivos de base de datos SQLite
 *.sqlite3
+
+# Archivos específicos del sistema
 .DS_Store
+
+# Configuración de VSCode
 .vscode/
+
+# Variables de entorno
 .env
+
+# Archivos de logs
 *.log
+
+# Archivos multimedia (excepto un marcador vacío)
 media/*
 !media/.gitkeep
+
+# Entorno virtual de Python
 .venv/
+
