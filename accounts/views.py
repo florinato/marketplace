@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
+from accounts.forms import ProfileForm
 from chat.models import Conversation
 from products.forms import ProductForm
 from products.models import Product  # Importa modelos de productos
@@ -48,31 +49,50 @@ def register(request):
 
 
 # Vista principal del perfil con pestañas@login_required
+@login_required
 def profile(request):
     tab = request.GET.get('tab', 'info')  # Tab por defecto: 'info'
-    context = {'active_tab': tab}
+    action = request.GET.get('action', None)  # Acción actual: None o "edit"
 
     if tab == 'info':
-        # Datos para la pestaña de información del usuario
         user_profile = get_object_or_404(Profile, user=request.user)
-        context.update({'user_profile': user_profile})
+
+        # Si estamos en modo edición
+        if action == 'edit':
+            if request.method == 'POST':
+                form = ProfileForm(request.POST, request.FILES, instance=user_profile)
+                if form.is_valid():
+                    form.save()
+                    messages.success(request, "Perfil actualizado correctamente.")
+                    return redirect(f"{reverse('profile')}?tab=info")
+            else:
+                form = ProfileForm(instance=user_profile)
+            context = {
+                'active_tab': tab,
+                'user_profile': user_profile,
+                'profile_form': form,
+                'editing': True,  # Indica si estamos en modo edición
+            }
+        else:
+            # Modo visualización
+            context = {
+                'active_tab': tab,
+                'user_profile': user_profile,
+                'editing': False,
+            }
 
     elif tab == 'products':
-        # Productos subidos por el usuario
         products = Product.objects.filter(user=request.user)
-        context.update({'products': products})
+        context = {'active_tab': tab, 'products': products}
 
     elif tab == 'add_product':
-        # Lógica para subir producto
         if request.method == 'POST':
             product_form = ProductForm(request.POST, request.FILES)
             if product_form.is_valid():
-                # Guarda el producto
                 product = product_form.save(commit=False)
                 product.user = request.user
                 product.save()
 
-                # Guarda imágenes adicionales (si existen)
                 images = request.FILES.getlist('images')
                 for img in images:
                     ProductImage.objects.create(product=product, image=img)
@@ -80,24 +100,29 @@ def profile(request):
                 return redirect(f"{reverse('profile')}?tab=products")
         else:
             product_form = ProductForm()
-
-        context.update({'product_form': product_form})
+        context = {'active_tab': tab, 'product_form': product_form}
 
     elif tab == 'purchases':
-        # Historial de compras del usuario
         purchases = Product.objects.filter(buyer=request.user)
-        context.update({'purchases': purchases})
+        context = {'active_tab': tab, 'purchases': purchases}
 
     elif tab == 'chats':
-        # Chats del usuario
         conversations = Conversation.objects.filter(participants=request.user)
-        context.update({'conversations': conversations})
+        conversations_with_unread = [
+            {
+                'conversation': conv,
+                'unread_count': conv.messages.filter(is_read=False).exclude(sender=request.user).count(),
+            } for conv in conversations
+        ]
+        context = {'active_tab': tab, 'conversations': conversations_with_unread}
 
     else:
-        # Tab no reconocida, redirigir a la pestaña por defecto
-        context.update({'active_tab': 'info'})
+        context = {'active_tab': 'info'}
 
     return render(request, 'accounts/profile.html', context)
+
+
+
 
 
 # Historial de compras

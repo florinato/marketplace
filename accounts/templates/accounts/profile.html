@@ -17,6 +17,15 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+        .unread-badge {
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -44,22 +53,42 @@
         <!-- Contenido de las pestañas -->
         <div class="bg-white p-6 rounded shadow">
             {% if active_tab == 'info' %}
-                <!-- Mi Perfil -->
-                <div>
-                    <h3 class="text-2xl font-semibold mb-4">Información de Usuario</h3>
+            <div>
+                <h3 class="text-2xl font-semibold mb-4">Información de Usuario</h3>
+                {% if not editing %}
+                    <!-- Modo visualización -->
                     <div class="flex items-center space-x-4">
                         <img src="{% if user.profile.profile_image %}{{ user.profile.profile_image.url }}{% else %}/media/profile_images/default_profile.jpg{% endif %}" 
                              alt="Foto de perfil" 
                              class="w-16 h-16 rounded-full">
-
+            
                         <div>
                             <p class="text-lg"><strong>Nombre:</strong> {{ user.username }}</p>
                             <p class="text-lg"><strong>Email:</strong> {{ user.email }}</p>
                             <p class="text-gray-600">{{ user.profile.bio|default:"Añade una descripción a tu perfil" }}</p>
-                            <a href="#" class="text-blue-500">Editar Perfil</a>
+                            <a href="?tab=info&action=edit" class="text-blue-500">Editar Perfil</a>
                         </div>
                     </div>
-                </div>
+                {% else %}
+                    <!-- Modo edición -->
+                    <form method="POST" enctype="multipart/form-data" class="mt-6">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            {{ profile_form.bio.label_tag }}
+                            {{ profile_form.bio }}
+                        </div>
+                        <div class="mb-4">
+                            {{ profile_form.profile_image.label_tag }}
+                            {{ profile_form.profile_image }}
+                        </div>
+                        <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded">Guardar Cambios</button>
+                        <a href="?tab=info" class="px-4 py-2 bg-gray-500 text-white rounded">Cancelar</a>
+                    </form>
+
+            </div>
+            {% endif %}
+            
+
             {% elif active_tab == 'products' %}
                 <!-- Mis Productos -->
                 <div>
@@ -82,103 +111,96 @@
                     <h3 class="text-2xl font-semibold mb-4">Subir Producto</h3>
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
+                        <!-- Título -->
                         <div class="form-group mb-4">
                             <label for="id_title" class="block text-gray-700 font-medium mb-2">Título</label>
                             {{ product_form.title }}
                         </div>
+                        <!-- Descripción -->
                         <div class="form-group mb-4">
                             <label for="id_description" class="block text-gray-700 font-medium mb-2">Descripción</label>
                             {{ product_form.description }}
                         </div>
+                        <!-- Precio -->
                         <div class="form-group mb-4">
                             <label for="id_price" class="block text-gray-700 font-medium mb-2">Precio</label>
                             {{ product_form.price }}
                         </div>
+                        <!-- Condición -->
                         <div class="form-group mb-4">
                             <label for="id_condition" class="block text-gray-700 font-medium mb-2">Condición</label>
                             {{ product_form.condition }}
                         </div>
-                
                         <!-- Fotos -->
                         <div class="form-group mb-4">
                             <label class="block text-gray-700 font-medium mb-2">Fotos</label>
-                            <div class="flex space-x-4">
+                            <div class="flex flex-wrap gap-4">
                                 <!-- Imagen Principal -->
                                 <div class="relative w-32 h-32 bg-gray-200 border rounded overflow-hidden">
                                     <input type="file" name="main_image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(event, 'main')">
                                     <img id="preview-main-image" src="" class="hidden w-full h-full object-cover" alt="Foto Principal">
                                     <div id="placeholder-main" class="flex items-center justify-center h-full text-gray-500">📷 Foto Principal</div>
                                 </div>
-                
                                 <!-- Imágenes adicionales -->
                                 {% for i in "1234" %}
                                 <div class="relative w-32 h-32 bg-gray-200 border rounded overflow-hidden">
-                                    <input type="file" name="images" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(event, {{ forloop.counter }})">
-                                    <img id="preview-image-{{ forloop.counter }}" src="" class="hidden w-full h-full object-cover" alt="Foto Adicional">
-                                    <div id="placeholder-{{ forloop.counter }}" class="flex items-center justify-center h-full text-gray-500">📷 Foto Adicional</div>
+                                    <input type="file" name="images" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(event, 'extra-{{ forloop.counter }}')">
+                                    <img id="preview-extra-{{ forloop.counter }}" src="" class="hidden w-full h-full object-cover" alt="Foto Adicional">
+                                    <div id="placeholder-extra-{{ forloop.counter }}" class="flex items-center justify-center h-full text-gray-500">📷 Foto Adicional</div>
                                 </div>
                                 {% endfor %}
                             </div>
                         </div>
-                
+                        <!-- Botón Subir -->
                         <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded">Subir Producto</button>
                     </form>
                 </div>
                 
                 <script>
-                    function previewImage(event, index) {
+                    function previewImage(event, id) {
                         const reader = new FileReader();
                         reader.onload = function () {
-                            // Selecciona el elemento correspondiente
-                            const preview = document.getElementById(index === 'main' ? 'preview-main-image' : `preview-image-${index}`);
-                            const placeholder = document.getElementById(index === 'main' ? 'placeholder-main' : `placeholder-${index}`);
-                            
-                            // Muestra la imagen y oculta el marcador
-                            preview.src = reader.result;
-                            preview.classList.remove('hidden');
-                            placeholder.classList.add('hidden');
+                            const preview = document.getElementById(`preview-${id}`);
+                            const placeholder = document.getElementById(`placeholder-${id}`);
+                            if (preview && placeholder) {
+                                preview.src = reader.result;
+                                preview.classList.remove('hidden');
+                                placeholder.classList.add('hidden');
+                            }
                         };
-                        // Lee el archivo seleccionado
                         reader.readAsDataURL(event.target.files[0]);
                     }
                 </script>
-            
-            {% elif active_tab == 'purchases' %}
-                <!-- Mis Compras -->
-                <div>
-                    <h3 class="text-2xl font-semibold mb-4">Historial de Compras</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                        {% for product in purchases %}
-                            <div class="bg-white rounded-lg shadow-md p-4">
-                                <img src="{{ product.main_image.url }}" alt="{{ product.title }}" class="w-full h-32 object-cover rounded">
-                                <h4 class="text-lg font-bold">{{ product.title }}</h4>
-                                <p class="text-gray-600">{{ product.price }}€</p>
-                                <p class="text-sm text-green-500">Comprado el {{ product.purchase_date }}</p>
-                                <a href="{% url 'product_detail' product.id %}" class="text-blue-500 mt-2 block">Ver Detalles</a>
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% elif active_tab == 'chats' %}
+            {% elif active_tab == 'chats' %}
+                <!-- Chats -->
                 <div>
                     <h3 class="text-2xl font-semibold mb-4">Chats</h3>
                     {% if conversations %}
                         <ul class="space-y-4">
-                            {% for conversation in conversations %}
+                            {% for item in conversations %}
                             <li class="p-4 bg-white rounded shadow-md flex justify-between items-center">
                                 <div>
-                                    <p class="font-semibold">Conversación sobre: <span class="text-green-600">{{ conversation.product.title }}</span></p>
+                                    <p class="font-semibold">Conversación sobre: 
+                                        <span class="text-green-600">{{ item.conversation.product.title }}</span>
+                                    </p>
                                     <p class="text-gray-500">
                                         Con: 
-                                        {% for participant in conversation.participants.all %}
+                                        {% for participant in item.conversation.participants.all %}
                                             {% if participant != user %}
                                                 {{ participant.username }}
                                             {% endif %}
                                         {% endfor %}
                                     </p>
                                 </div>
-                                <a href="{% url 'chat:conversation_detail' conversation.pk %}" 
-                                   class="text-blue-500 hover:underline">Ver conversación</a>
+                                <div class="flex items-center space-x-2">
+                                    {% if item.unread_count > 0 %}
+                                        <span class="unread-badge">{{ item.unread_count }}</span>
+                                    {% else %}
+                                        <span class="text-gray-500">Sin mensajes nuevos</span>
+                                    {% endif %}
+                                    <a href="{% url 'chat:conversation_detail' item.conversation.pk %}" 
+                                       class="text-blue-500 hover:underline ml-4">Ver conversación</a>
+                                </div>
                             </li>
                             {% endfor %}
                         </ul>
@@ -186,7 +208,7 @@
                         <p class="text-gray-500">No tienes chats abiertos en este momento.</p>
                     {% endif %}
                 </div>
-                {% endif %}
+            {% endif %}
         </div>
     </div>
 </body>

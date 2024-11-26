@@ -1,4 +1,4 @@
-<!-- templates/chat/conversation_list.html -->
+<!-- chat/templates/chat/conversation_list.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,9 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Conversaciones</title>
     <style>
-        .unread {
-            color: red;
-            font-weight: bold;
+        .unread-badge {
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
         }
     </style>
 </head>
@@ -18,11 +22,11 @@
         {% for item in conversations %}
             <li>
                 <a href="{% url 'chat:conversation_detail' item.conversation.pk %}">
-                    Conversación con {{ item.conversation.participants.exclude(pk=request.user.pk).first }}
+                    Conversación con {{ item.conversation.participants.exclude(pk=request.user.pk).first.username }}
+                    {% if item.unread_count > 0 %}
+                        <span class="unread-badge">{{ item.unread_count }}</span>
+                    {% endif %}
                 </a>
-                {% if item.unread_count > 0 %}
-                    <span class="unread">({{ item.unread_count }} nuevos mensajes)</span>
-                {% endif %}
             </li>
         {% empty %}
             <li>No tienes conversaciones.</li>

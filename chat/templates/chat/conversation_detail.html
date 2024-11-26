@@ -1,3 +1,4 @@
+<!-- chat/templates/chat/conversation_detail.html -->
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
@@ -25,9 +26,13 @@
             max-height: 500px;
             overflow-y: auto;
             margin-bottom: 1rem;
+            padding: 0.5rem;
         }
         .message {
             margin-bottom: 1rem;
+            padding: 1rem 3rem;
+            border-radius: 8px;
+            font-size: 1.2rem;
         }
         .message .sender {
             font-weight: bold;
@@ -41,10 +46,10 @@
         }
         .message.mine {
             text-align: right;
+            background-color: #d4edda;
         }
-        form {
-            display: flex;
-            gap: 0.5rem;
+        .message.theirs {
+            background-color: #f8d7da;
         }
         textarea {
             flex: 1;
@@ -52,6 +57,14 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             resize: none;
+            box-sizing: border-box;
+        }
+        textarea::placeholder {
+            color: #999;
+        }
+        form {
+            display: flex;
+            gap: 0.5rem;
         }
         button {
             padding: 0.5rem 1rem;
@@ -64,16 +77,31 @@
         button:hover {
             background: #45a049;
         }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            padding: 0.5rem 1rem;
+            background: #28a745;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            background: #218838;
+        }
     </style>
 </head>
 <body>
     <div class="chat-container">
+        <!-- Botón para volver -->
+        <a href="{% url 'profile' %}?tab=chats" class="back-link">Volver a mis chats</a>
+
         <h1>Chat sobre: {{ conversation.product.title }}</h1>
 
         <!-- Lista de mensajes -->
         <div class="messages">
             {% for message in messages %}
-                <div class="message {% if message.sender == user %}mine{% endif %}">
+                <div class="message {% if message.sender == user %}mine{% else %}theirs{% endif %}">
                     <div class="sender">
                         {% if message.sender == user %}
                             Tú
@@ -96,4 +124,3 @@
     </div>
 </body>
 </html>
-

@@ -12,27 +12,31 @@ from .models import Conversation, Message
 def conversation_list(request):
     """Lista todas las conversaciones del usuario."""
     conversations = Conversation.objects.filter(participants=request.user)
-    return render(request, 'chat/conversation_list.html', {
+    context = {
         'conversations': [
             {
                 'conversation': conv,
                 'unread_count': conv.unread_messages_count(request.user),
             } for conv in conversations
         ]
-    })
+    }
+    return render(request, 'chat/conversation_list.html', context)
+
 
 @login_required
 def conversation_detail(request, pk):
-    """Muestra los detalles de una conversación."""
+    """Muestra y gestiona el detalle de una conversación."""
     conversation = get_object_or_404(Conversation, pk=pk)
 
-    # Verificar que el usuario es participante
+    # Verificar que el usuario es participante de la conversación
     if request.user not in conversation.participants.all():
         return JsonResponse({'error': 'No tienes permiso para acceder a esta conversación.'}, status=403)
 
-    # Recuperar todos los mensajes de la conversación
-    messages = conversation.messages.all().order_by('timestamp')
+    # Marcar como leídos solo los mensajes no enviados por el usuario actual
+    conversation.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
 
+    # Recuperar todos los mensajes para mostrar en la conversación
+    messages = conversation.messages.all().order_by('timestamp')
     return render(request, 'chat/conversation_detail.html', {
         'conversation': conversation,
         'messages': messages,
@@ -45,9 +49,11 @@ def send_message(request, pk):
         conversation = get_object_or_404(Conversation, pk=pk, participants=request.user)
         content = request.POST.get('content')
         if content:
-            Message.objects.create(conversation=conversation, sender=request.user, content=content)
+            # Crear el mensaje sin marcarlo como leído
+            Message.objects.create(conversation=conversation, sender=request.user, content=content, is_read=False)
             return redirect('chat:conversation_detail', pk=pk)
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
 @login_required
 def start_conversation(request, product_id):
     """Inicia una conversación entre el usuario actual y el vendedor del producto."""

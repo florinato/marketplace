@@ -16,7 +16,8 @@ class Conversation(models.Model):
         return f"Conversación sobre {self.product.title} - {self.created_at}"
 
     def unread_messages_count(self, user):
-        return self.messages.filter(is_read=False).exclude(sender=user).count()
+        # Contar solo mensajes enviados por otros y no leídos por el usuario actual
+        return self.messages.filter(is_read=False, sender__ne=user).count()
 
 
 class Message(models.Model):
