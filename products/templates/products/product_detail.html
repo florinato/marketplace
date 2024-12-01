@@ -82,6 +82,20 @@
         .reserve-btn.available:hover {
             background-color: #45a049;
         }
+        .report-btn {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: #ff4c4c;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    
+        .report-btn:hover {
+            background-color: #ff0000;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -94,6 +108,7 @@
 
     <div class="main-container">
         <div class="product-container">
+            <!-- Carrusel de imágenes -->
             <div class="carousel-container">
                 {% if product.main_image %}
                     <img src="{{ product.main_image.url }}" alt="{{ product.title }}" class="carousel-image active">
@@ -103,6 +118,7 @@
                 {% endfor %}
             </div>
 
+            <!-- Thumbnails -->
             <div class="thumbnail-container">
                 {% if product.main_image %}
                     <img src="{{ product.main_image.url }}" onclick="goToSlide(0)" class="thumbnail-image active">
@@ -112,6 +128,7 @@
                 {% endfor %}
             </div>
 
+            <!-- Detalles del producto -->
             <div class="product-details">
                 <h2 class="text-3xl font-bold text-gray-800">{{ product.title }}</h2>
                 <p class="text-green-600 font-semibold text-2xl mb-2">{{ product.price }} €</p>
@@ -121,6 +138,7 @@
                     <p>{{ product.description }}</p>
                 </div>
 
+                <!-- Botón de reservar producto -->
                 <div class="mt-6 text-center">
                     {% if user.is_authenticated %}
                         {% if user != product.user %}
@@ -144,15 +162,19 @@
                     {% endif %}
                 </div>
 
+                <!-- Botón de reportar contenido inadecuado -->
                 <div class="mt-6 text-center">
                     {% if user.is_authenticated and user != product.user %}
-                        <a href="{% url 'chat:start_conversation' product.id %}" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                        <a href="{% url 'chat:start_conversation' product.id %}" 
+                           class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
                             Chatear con el vendedor
                         </a>
-                    {% elif user == product.user %}
-                        <p class="text-gray-500 mt-4">Eres el propietario de este producto.</p>
-                    {% else %}
-                        <p class="text-red-500 mt-4">Debes iniciar sesión para contactar con el vendedor.</p>
+                        <a href="{% url 'report_product' product.id %}" 
+                           class="report-btn">
+                            Reportar contenido inadecuado
+                        </a>
+                    {% elif not user.is_authenticated %}
+                        <p class="text-red-500 mt-4">Debes iniciar sesión para contactar con el vendedor o reportar este producto.</p>
                     {% endif %}
                 </div>
             </div>

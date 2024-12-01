@@ -34,7 +34,14 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"Imagen de {self.product.title}"
+class Report(models.Model):
+    reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports')  # Usuario que reporta
+    reported_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reported_reports')  # Usuario reportado (dueño del producto)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reports')  # Producto reportado
+    reason = models.TextField(help_text="Explica por qué reportas este producto o usuario.")
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"Reporte por {self.reporter.username} sobre {self.reported_user.username} (Producto: {self.product.title})"
 
-    
 

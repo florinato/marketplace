@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from chat.models import Conversation
 
-from .forms import ProductForm
+from .forms import ProductForm, ReportForm
 from .models import Product, ProductImage
 
 
@@ -69,3 +69,24 @@ def chat_with_seller(request, product_id):
     # Redirigir al sistema de chat
     return redirect('conversation_detail', conversation_id=conversation.id)
 
+@login_required
+def report_product(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+    reported_user = product.user  # El dueño del producto
+
+    if request.method == 'POST':
+        form = ReportForm(request.POST)
+        if form.is_valid():
+            report = form.save(commit=False)
+            report.reporter = request.user
+            report.reported_user = reported_user
+            report.product = product
+            report.save()
+            return redirect('product_detail', pk=product.id)
+    else:
+        form = ReportForm()
+
+    return render(request, 'reports/report_product.html', {
+        'form': form,
+        'product': product,
+    })

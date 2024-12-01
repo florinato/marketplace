@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportar Producto</title>
+</head>
+<body>
+    <h1>Reportar Producto: {{ product.title }}</h1>
+    <p>Estás reportando un producto del usuario: {{ product.user.username }}</p>
+
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-danger">Enviar Reporte</button>
+        <a href="{% url 'product_detail' product.id %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</body>
+</html>
