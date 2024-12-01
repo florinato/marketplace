@@ -14,9 +14,12 @@ class Product(models.Model):
     tags = models.CharField(max_length=100, blank=True, null=True, default="")
     is_reserved = models.BooleanField(default=False)
     buyer = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name="purchases")
+    is_sold = models.BooleanField(default=False)  # Renombrado de is_active
+    is_blocked = models.BooleanField(default=False)  # Se mantiene igual
 
     def __str__(self):
         return self.title
+
 
 
 
@@ -35,13 +38,21 @@ class ProductImage(models.Model):
     def __str__(self):
         return f"Imagen de {self.product.title}"
 class Report(models.Model):
-    reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports')  # Usuario que reporta
-    reported_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reported_reports')  # Usuario reportado (dueño del producto)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reports')  # Producto reportado
+    STATUS_CHOICES = [
+        ('pending', 'Pendiente'),
+        ('resolved', 'Resuelto'),
+        ('dismissed', 'Descartado'),
+    ]
+
+    reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports')
+    reported_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reported_reports')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reports')
     reason = models.TextField(help_text="Explica por qué reportas este producto o usuario.")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')  # Nuevo campo
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Reporte por {self.reporter.username} sobre {self.reported_user.username} (Producto: {self.product.title})"
+
 
 

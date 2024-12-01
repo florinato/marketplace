@@ -18,7 +18,6 @@ class ProductImageAdmin(admin.ModelAdmin):
 
 @admin.register(Report)
 class ReportAdmin(admin.ModelAdmin):
-    list_display = ('reporter', 'reported_user', 'product', 'reason', 'created_at')
-    list_filter = ('created_at',)
-    search_fields = ('reporter__username', 'reported_user__username', 'reason')
-
+    list_display = ('reporter', 'reported_user', 'product', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('reason', 'reporter__username', 'reported_user__username', 'product__title')

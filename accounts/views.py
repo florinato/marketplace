@@ -10,9 +10,9 @@ from accounts.forms import ProfileForm
 from chat.models import Conversation
 from products.forms import ProductForm
 from products.models import Product  # Importa modelos de productos
-from products.models import ProductImage
+from products.models import ProductImage, Report
 
-from .models import Profile
+from .models import Profile, Rating
 
 
 # Registro de usuarios
@@ -138,3 +138,47 @@ def sold_products(request):
     sold_products = Product.objects.filter(user=request.user, sold=True)
     return render(request, 'accounts/sold_products.html', {'products': sold_products})
 
+@login_required
+def admin_report_list(request):
+    if not request.user.is_staff:
+        return redirect('home')
+
+    reports = Report.objects.filter(status='pending').order_by('-created_at')
+    return render(request, 'admin/report_list.html', {'reports': reports})
+@login_required
+def resolve_report(request, report_id):
+    if not request.user.is_staff:
+        return redirect('home')
+
+    report = get_object_or_404(Report, pk=report_id)
+    action = request.POST.get('action')
+
+    if action == 'resolve':
+        # Marca el producto como bloqueado
+        report.product.is_blocked = True
+        report.product.save()  # Guarda el cambio en el producto
+        report.status = 'resolved'
+        report.save()  # Actualiza el reporte a resuelto
+    elif action == 'dismiss':
+        # Marcar reporte como descartado
+        report.status = 'dismissed'
+        report.save()
+
+    return redirect('admin_report_list')
+
+@login_required
+def admin_review_list(request):
+    if not request.user.is_staff:
+        return redirect('home')
+
+    reviews = Rating.objects.all().order_by('-created_at')
+    return render(request, 'admin/review_list.html', {'reviews': reviews})
+
+@login_required
+def delete_review(request, review_id):
+    if not request.user.is_staff:
+        return redirect('home')
+
+    review = get_object_or_404(Rating, pk=review_id)
+    review.delete()
+    return redirect('admin_review_list')
