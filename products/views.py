@@ -44,16 +44,18 @@ def product_detail(request, pk):
     })
 
 @login_required
-def reserve_product(request, product_id):
-    product = Product.objects.get(id=product_id)
-    if not product.is_reserved:  # O un campo similar para verificar si está reservado
+def reserve_product(request, pk):  # Cambiado a 'pk' para mayor consistencia
+    product = get_object_or_404(Product, pk=pk)  # Aseguramos que el producto existe
+    if not product.is_reserved:
         product.is_reserved = True
         product.buyer = request.user
         product.save()
         messages.success(request, "Has reservado este producto exitosamente.")
     else:
         messages.error(request, "Este producto ya está reservado.")
-    return redirect('product_detail', product_id=product.id)
+    
+    # Redirección corregida utilizando 'pk' para que coincida con las URLs
+    return redirect('product_detail', pk=product.pk)
 
 @login_required
 def chat_with_seller(request, product_id):
