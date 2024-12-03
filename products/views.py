@@ -44,18 +44,16 @@ def product_detail(request, pk):
     })
 
 @login_required
-def reserve_product(request, pk):  # Cambiado a 'pk' para mayor consistencia
-    product = get_object_or_404(Product, pk=pk)  # Aseguramos que el producto existe
-    if not product.is_reserved:
-        product.is_reserved = True
-        product.buyer = request.user
-        product.save()
-        messages.success(request, "Has reservado este producto exitosamente.")
-    else:
-        messages.error(request, "Este producto ya está reservado.")
+def mark_as_sold(request, pk):
+    product = get_object_or_404(Product, pk=pk, user=request.user)
     
-    # Redirección corregida utilizando 'pk' para que coincida con las URLs
-    return redirect('product_detail', pk=product.pk)
+    if request.method == "POST":
+        product.is_sold = True
+        product.save()
+        messages.success(request, "Producto marcado como vendido.")
+        return redirect('product_detail', pk=product.pk)
+    
+    return render(request, 'products/confirm_mark_as_sold.html', {'product': product})
 
 @login_required
 def chat_with_seller(request, product_id):

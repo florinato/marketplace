@@ -5,8 +5,8 @@ from .models import Product, ProductImage, Report
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('title', 'price', 'user', 'condition', 'is_reserved')
-    list_filter = ('condition', 'is_reserved', 'tags')
+    list_display = ('title', 'price', 'user', 'condition')
+    list_filter = ('condition', 'tags')
     search_fields = ('title', 'description', 'tags')
 
 

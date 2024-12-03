@@ -12,7 +12,6 @@ class Product(models.Model):
     condition = models.CharField(max_length=50, blank=True, null=True, default="Nuevo")
     main_image = models.ImageField(upload_to='products/', blank=True, null=True)
     tags = models.CharField(max_length=100, blank=True, null=True, default="")
-    is_reserved = models.BooleanField(default=False)
     buyer = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name="purchases")
     is_sold = models.BooleanField(default=False)  # Renombrado de is_active
     is_blocked = models.BooleanField(default=False)  # Se mantiene igual

@@ -63,23 +63,20 @@
             opacity: 1;
             border: 2px solid #4CAF50;
         }
-        .reserve-btn {
+        .action-btn {
             margin-top: 1rem;
             padding: 0.75rem 1.5rem;
             font-size: 1rem;
             font-weight: bold;
             border-radius: 8px;
+            text-align: center;
         }
-        .reserve-btn.reserved {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        .reserve-btn.available {
+        .action-btn.sold {
             background-color: #4CAF50;
             color: white;
             cursor: pointer;
         }
-        .reserve-btn.available:hover {
+        .action-btn.sold:hover {
             background-color: #45a049;
         }
         .report-btn {
@@ -92,11 +89,11 @@
             text-decoration: none;
             font-weight: bold;
         }
-    
         .report-btn:hover {
             background-color: #ff0000;
         }
     </style>
+    
 </head>
 <body class="bg-gray-100 text-gray-800">
     <header class="bg-white shadow-md py-4">
@@ -138,43 +135,34 @@
                     <p>{{ product.description }}</p>
                 </div>
 
-                <!-- Botón de reservar producto -->
+                <!-- Botón de producto vendido -->
                 <div class="mt-6 text-center">
-                    {% if user.is_authenticated %}
-                        {% if user != product.user %}
-                            <form method="POST" action="{% url 'reserve_product' product.id %}">
+                    {% if user.is_authenticated and user == product.user %}
+                        {% if not product.is_sold %}
+                            <form method="POST" action="{% url 'mark_as_sold' pk=product.pk %}">
                                 {% csrf_token %}
-                                {% if product.is_reserved %}
-                                    <button type="button" class="reserve-btn reserved" disabled>
-                                        Reservado
-                                    </button>
-                                {% else %}
-                                    <button type="submit" class="reserve-btn available">
-                                        Reservar
-                                    </button>
-                                {% endif %}
+                                <button type="submit" class="action-btn sold">
+                                    Marcar como vendido
+                                </button>
                             </form>
                         {% else %}
-                            <p class="text-gray-500 mt-4">Eres el propietario de este producto.</p>
+                            <p class="text-gray-500 mt-4">Este producto ya ha sido marcado como vendido.</p>
                         {% endif %}
-                    {% else %}
-                        <p class="text-red-500 mt-4">Debes iniciar sesión para reservar este producto.</p>
                     {% endif %}
                 </div>
-
                 <!-- Botón de reportar contenido inadecuado -->
                 <div class="mt-6 text-center">
                     {% if user.is_authenticated and user != product.user %}
                         <a href="{% url 'chat:start_conversation' product.id %}" 
                            class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-                            Chatear con el vendedor
+                            contactar con vendedor
                         </a>
                         <a href="{% url 'report_product' product.id %}" 
                            class="report-btn">
                             Reportar contenido inadecuado
                         </a>
                     {% elif not user.is_authenticated %}
-                        <p class="text-red-500 mt-4">Debes iniciar sesión para contactar con el vendedor o reportar este producto.</p>
+                        <p class="text-red-500 mt-4">Debes iniciar sesión.</p>
                     {% endif %}
                 </div>
             </div>
