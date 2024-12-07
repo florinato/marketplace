@@ -100,7 +100,7 @@
                                 <h4 class="text-lg font-bold">{{ product.title }}</h4>
                                 <p class="text-gray-600">{{ product.price }}€</p>
                                 <p class="text-sm {% if product.is_sold %}text-red-500{% endif %}">{{ product.is_sold|yesno:"Vendido,Disponible" }}</p>
-                                <a href="{% url 'product_detail' product.id %}" class="text-blue-500 mt-2 block">Ver Detalles</a>
+                                <a href="{% url 'products:product_detail' product.id %}" class="text-blue-500 mt-2 block">Ver Detalles</a>
                             </div>
                         {% endfor %}
                     </div>

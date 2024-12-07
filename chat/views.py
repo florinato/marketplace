@@ -1,8 +1,11 @@
+# chat/views.py
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+from accounts.models import Rating
 from products.models import Product
 
 from .models import Conversation, Message
@@ -22,7 +25,6 @@ def conversation_list(request):
     }
     return render(request, 'chat/conversation_list.html', context)
 
-
 @login_required
 def conversation_detail(request, pk):
     """Muestra y gestiona el detalle de una conversación."""
@@ -35,12 +37,26 @@ def conversation_detail(request, pk):
     # Marcar como leídos solo los mensajes no enviados por el usuario actual
     conversation.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
 
+    # Recuperar el producto asociado a la conversación
+    product = getattr(conversation, 'product', None)
+
+    # Determinar si el usuario puede valorar al vendedor
+    has_received_ratings = False
+    if product and product.is_sold and product.buyer == request.user:
+        # Comprobar si ya existe una valoración para este vendedor y producto
+        has_received_ratings = Rating.objects.filter(rater=request.user, rated=product.user, product=product).exists()
+
     # Recuperar todos los mensajes para mostrar en la conversación
     messages = conversation.messages.all().order_by('timestamp')
+
     return render(request, 'chat/conversation_detail.html', {
         'conversation': conversation,
         'messages': messages,
+        'product': product,
+        'has_received_ratings': has_received_ratings,
     })
+
+
 
 @login_required
 def send_message(request, pk):
@@ -73,4 +89,46 @@ def start_conversation(request, product_id):
 
     # Redirigir al detalle de la conversación
     return redirect('chat:conversation_detail', pk=conversation.pk)
+
+from django.shortcuts import get_object_or_404
+
+from chat.models import Conversation
+
+
+@login_required
+def rate_seller(request, pk):
+    # Obtenemos la conversacion por su UUID
+    conversation = get_object_or_404(Conversation, pk=pk)
+    product = conversation.product
+    seller = product.user
+
+    # Verificar que el request.user es el comprador (product.buyer) y que el producto esta vendido
+    if product.buyer != request.user or not product.is_sold:
+        messages.error(request, "No estas autorizado para valorar a este vendedor.")
+        return redirect('chat:conversation_detail', pk=conversation.pk)
+
+    # Verificar si ya se ha valorado antes
+    if Rating.objects.filter(rater=request.user, rated=seller, product=product).exists():
+        messages.info(request, "Ya has valorado a este vendedor.")
+        return redirect('chat:conversation_detail', pk=conversation.pk)
+
+    if request.method == 'POST':
+        score = request.POST.get('score')
+        comment = request.POST.get('comment', '')
+        Rating.objects.create(
+            rater=request.user,
+            rated=seller,
+            product=product,
+            score=score,
+            comment=comment
+        )
+        messages.success(request, "¡Gracias por tu valoracion!")
+        return redirect('chat:conversation_detail', pk=conversation.pk)
+
+    return render(request, 'chat/rate_seller.html', {
+        'product': product,
+        'conversation': conversation
+    })
+
+
 

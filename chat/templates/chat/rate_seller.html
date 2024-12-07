@@ -1,0 +1,28 @@
+<!-- templates/products/rate_seller.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Valorar al vendedor: {{ product.user.username }}</h1>
+
+<form method="POST">
+    {% csrf_token %}
+    <div class="mb-4">
+        <label for="score" class="block text-sm font-medium text-gray-700">Calificación:</label>
+        <select name="score" id="score" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200" required>
+            <option value="">Selecciona una calificación</option>
+            {% for i in "12345"|make_list %}
+                <option value="{{ i }}">{{ i }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-4">
+        <label for="comment" class="block text-sm font-medium text-gray-700">Comentario (opcional):</label>
+        <textarea name="comment" id="comment" rows="4" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200" placeholder="Escribe un comentario..."></textarea>
+    </div>
+    <div class="flex space-x-4 mt-4">
+        <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Enviar valoración</button>
+        <a href="{% url 'chat:conversation_detail' pk=conversation.pk %}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Volver al chat</a>
+    </div>
+</form>
+{% endblock %}
+

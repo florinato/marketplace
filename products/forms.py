@@ -1,6 +1,7 @@
 # products/forms.py
 
 from django import forms
+from django.contrib.auth.models import User
 
 from .models import Product, ProductImage, Report
 
@@ -26,3 +27,15 @@ class ReportForm(forms.ModelForm):
                 'class': 'form-control',
             }),
         }
+class MarkAsSoldForm(forms.Form):
+    buyer = forms.ModelChoiceField(
+        queryset=User.objects.none(),
+        required=False,
+        label="Seleccionar comprador",
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        user_queryset = kwargs.pop('user_queryset', User.objects.none())
+        super().__init__(*args, **kwargs)
+        self.fields['buyer'].queryset = user_queryset

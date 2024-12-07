@@ -89,6 +89,18 @@
         .back-link:hover {
             background: #218838;
         }
+        .rate-button {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: #ffc107;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .rate-button:hover {
+            background: #e0a800;
+        }
     </style>
 </head>
 <body>
@@ -97,6 +109,15 @@
         <a href="{% url 'profile' %}?tab=chats" class="back-link">Volver a mis chats</a>
 
         <h1>Chat sobre: {{ conversation.product.title }}</h1>
+
+        <!-- Botón para valorar al vendedor -->
+        {% if product and product.is_sold and product.buyer == user and not has_received_ratings %}
+            <div class="mt-4 text-center">
+                <a href="{% url 'chat:rate_seller' conversation.pk %}" class="rate-button">
+                    Valorar al vendedor
+                </a>
+            </div>
+        {% endif %}
 
         <!-- Lista de mensajes -->
         <div class="messages">
@@ -109,14 +130,14 @@
                             {{ message.sender.username }}
                         {% endif %}
                     </div>
-                    <div class="timestamp">{{ message.timestamp }}</div>
-                    <div class="content">{{ message.content }}</div>
+                    <div class="timestamp">{{ message.timestamp|date:"d/m/Y H:i" }}</div>
+                    <div class="content">{{ message.content|safe }}</div>
                 </div>
             {% endfor %}
         </div>
 
         <!-- Formulario para enviar mensaje -->
-        <form method="POST" action="{% url 'chat:send_message' conversation.id %}">
+        <form method="POST" action="{% url 'chat:send_message' conversation.pk %}">
             {% csrf_token %}
             <textarea name="content" rows="3" placeholder="Escribe tu mensaje..." required></textarea>
             <button type="submit">Enviar</button>

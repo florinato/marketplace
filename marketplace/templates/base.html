@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido a Wallaclone</title>
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <!-- Encabezado -->
+    <header class="bg-white shadow-md py-4">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <h1 class="text-2xl font-bold text-green-600">Wallaclone</h1>
+            <div class="flex items-center space-x-4">
+                {% if user.is_authenticated %}
+                    <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="text-gray-600">Logout</button>
+                    </form>
+                    <a href="#" class="text-gray-600">💬</a>
+                    <a href="#" class="text-gray-600">🔔</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-gray-600">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido dinámico -->
+    <main class="container mx-auto my-8 px-4">
+        {% block content %}{% endblock content %}
+    </main>
+
+    <!-- Navegación Inferior -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white shadow-md py-2 flex justify-around border-t border-gray-200">
+        <a href="#" class="text-center text-green-600">
+            <span class="block text-2xl">🏠</span>
+            <span class="text-sm">Inicio</span>
+        </a>
+        <a href="#" class="text-center text-gray-600">
+            <span class="block text-2xl">🔍</span>
+            <span class="text-sm">Explorar</span>
+        </a>
+        <a href="{% url 'profile' %}?tab=add_product" class="text-center text-green-600">
+            <span class="block text-2xl">➕</span>
+            <span class="text-sm">Subir</span>
+        </a>
+        <a href="#" class="text-center text-gray-600">
+            <span class="block text-2xl">👤</span>
+            <span class="text-sm">Perfil</span>
+        </a>
+    </nav>
+</body>
+</html>

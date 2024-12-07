@@ -51,7 +51,8 @@
                         <p class="text-green-600 font-semibold text-xl">{{ product.price }}€</p>
                         <p class="text-gray-500 text-sm flex items-center">Publicado por: <strong>{{ product.user.username }}</strong></p>
                         {% if product.pk %}
-                            <a href="{% url 'product_detail' product.pk %}" class="text-blue-500 mt-4 block">Ver Detalles</a>
+                        <a href="{% url 'products:product_detail' product.pk %}" class="text-blue-500 mt-4 block">Ver Detalles</a>
+
                         {% else %}
                             <span class="text-red-500 mt-4 block">Producto no disponible</span>
                         {% endif %}

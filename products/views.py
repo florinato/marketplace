@@ -2,9 +2,12 @@
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
 
-from chat.models import Conversation
+from chat.models import Conversation, Message
 
 from .forms import ProductForm, ReportForm
 from .models import Product, ProductImage
@@ -37,23 +40,99 @@ def add_product(request):
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
     images = product.images.all()
+    
+    # Obtener usuarios que han conversado sobre este producto (posibles compradores)
+    conversations = Conversation.objects.filter(product=product)
+    buyers = User.objects.filter(
+        id__in=conversations.values_list('participants', flat=True)
+    ).exclude(id=product.user.id)
+    
     return render(request, 'products/product_detail.html', {
         'product': product,
         'images': images,
         'user': request.user,
+        'buyers': buyers,  # Añadimos la lista de compradores potenciales
     })
+@login_required
+def mark_as_sold_or_withdraw(request, pk):
+    product = get_object_or_404(Product, pk=pk, user=request.user)
+
+    if request.method == "POST":
+        action = request.POST.get('action')  # Recibe "sell" o "withdraw"
+
+        if action == "sell":
+            product.is_sold = True
+            product.sold_date = timezone.now()
+
+            # Asignar comprador
+            buyer_id = request.POST.get('buyer')
+            if buyer_id:
+                product.buyer = get_object_or_404(User, pk=buyer_id)
+                product.save()
+
+                # Crear o buscar conversación
+                conversation, created = Conversation.objects.get_or_create(
+                    product=product
+                )
+                conversation.participants.add(request.user, product.buyer)
+
+                # Enviar mensaje automático
+                Message.objects.create(
+                    conversation=conversation,
+                    sender=request.user,
+                    content=(
+                        f"Gracias por tu compra. Por favor, valórame aquí: "
+                        f"<a href='{reverse('chat:rate_seller', args=[conversation.pk])}'>Valorar Vendedor</a>"
+                    )
+                )
+
+            messages.success(request, "Producto marcado como vendido y comprador asignado.")
+
+        elif action == "withdraw":
+            product.is_withdrawn = True
+            product.is_blocked = True
+            product.save()
+            messages.success(request, "Producto retirado de la venta.")
+
+        return redirect('products:product_detail', pk=product.pk)
+
+
+    # Lógica para mostrar el formulario
+    buyers = User.objects.filter(
+        id__in=Conversation.objects.filter(product=product).values_list('participants', flat=True)
+    ).exclude(id=request.user.id)
+
+    return redirect('products:product_detail', pk=product.pk)
+
+
 
 @login_required
-def mark_as_sold(request, pk):
-    product = get_object_or_404(Product, pk=pk, user=request.user)
-    
+def assign_buyer(request, pk):
+    product = get_object_or_404(Product, pk=pk, user=request.user, is_sold=True)
+
     if request.method == "POST":
-        product.is_sold = True
-        product.save()
-        messages.success(request, "Producto marcado como vendido.")
-        return redirect('product_detail', pk=product.pk)
-    
-    return render(request, 'products/confirm_mark_as_sold.html', {'product': product})
+        buyer_id = request.POST.get('buyer')
+        if buyer_id:
+            buyer = get_object_or_404(User, pk=buyer_id)
+            product.buyer = buyer
+            product.save()
+            messages.success(request, "Comprador asignado correctamente.")
+            return redirect('product_detail', pk=product.pk)
+    else:
+        # Obtener usuarios que han contactado con el vendedor sobre este producto
+        conversations = Conversation.objects.filter(product=product)
+        buyers = set()
+        for conv in conversations:
+            for participant in conv.participants.all():
+                if participant != request.user:
+                    buyers.add(participant)
+        context = {
+            'product': product,
+            'buyers': buyers
+        }
+        return render(request, 'products/assign_buyer.html', context)
+
+
 
 @login_required
 def chat_with_seller(request, product_id):

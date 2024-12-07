@@ -1,3 +1,4 @@
+# chat/models.py
 import uuid  # Para generar UUIDs únicos
 
 from django.contrib.auth.models import User

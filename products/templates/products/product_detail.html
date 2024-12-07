@@ -63,22 +63,6 @@
             opacity: 1;
             border: 2px solid #4CAF50;
         }
-        .action-btn {
-            margin-top: 1rem;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .action-btn.sold {
-            background-color: #4CAF50;
-            color: white;
-            cursor: pointer;
-        }
-        .action-btn.sold:hover {
-            background-color: #45a049;
-        }
         .report-btn {
             display: inline-block;
             margin-top: 1rem;
@@ -92,8 +76,31 @@
         .report-btn:hover {
             background-color: #ff0000;
         }
+        .option-block {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .option-block h3 {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        .option-block h4 {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .option-block p {
+            margin-bottom: 0.5rem;
+        }
+        .action-button {
+            margin-top: 20px;
+        }
+      
     </style>
-    
 </head>
 <body class="bg-gray-100 text-gray-800">
     <header class="bg-white shadow-md py-4">
@@ -105,12 +112,12 @@
 
     <div class="main-container">
         <div class="product-container">
-            <!-- Carrusel de imágenes -->
+            <!-- Carrusel de imagenes -->
             <div class="carousel-container">
                 {% if product.main_image %}
                     <img src="{{ product.main_image.url }}" alt="{{ product.title }}" class="carousel-image active">
                 {% endif %}
-                {% for image in product.images.all %}
+                {% for image in images %}
                     <img src="{{ image.image.url }}" alt="{{ product.title }}" class="carousel-image">
                 {% endfor %}
             </div>
@@ -120,49 +127,100 @@
                 {% if product.main_image %}
                     <img src="{{ product.main_image.url }}" onclick="goToSlide(0)" class="thumbnail-image active">
                 {% endif %}
-                {% for image in product.images.all %}
+                {% for image in images %}
                     <img src="{{ image.image.url }}" onclick="goToSlide({{ forloop.counter }})" class="thumbnail-image">
                 {% endfor %}
             </div>
 
             <!-- Detalles del producto -->
-            <div class="product-details">
+            <div class="product-details" style="margin-top:20px;">
                 <h2 class="text-3xl font-bold text-gray-800">{{ product.title }}</h2>
                 <p class="text-green-600 font-semibold text-2xl mb-2">{{ product.price }} €</p>
-                <p class="text-gray-500 text-lg mb-4">Publicado por: <strong>{{ product.user.username }}</strong></p>
+                <p class="text-gray-500 text-lg mb-4">
+                    Publicado por: 
+                    <a href="{% url 'user_profile_detail' user_id=product.user.id %}" class="text-blue-500">
+                        <strong>{{ product.user.username }}</strong>
+                    </a>
+                </p>
+                
                 <div class="text-gray-700">
-                    <h3 class="text-xl font-semibold mb-2">Descripción</h3>
+                    <h3 class="text-xl font-semibold mb-2">Descripcion</h3>
                     <p>{{ product.description }}</p>
                 </div>
 
-                <!-- Botón de producto vendido -->
-                <div class="mt-6 text-center">
-                    {% if user.is_authenticated and user == product.user %}
-                        {% if not product.is_sold %}
-                            <form method="POST" action="{% url 'mark_as_sold' pk=product.pk %}">
-                                {% csrf_token %}
-                                <button type="submit" class="action-btn sold">
-                                    Marcar como vendido
-                                </button>
-                            </form>
-                        {% else %}
-                            <p class="text-gray-500 mt-4">Este producto ya ha sido marcado como vendido.</p>
-                        {% endif %}
+                {% if user.is_authenticated and product.user_id == user.id %}
+                    {% if not product.is_sold and not product.is_withdrawn %}
+                        <!-- Boton principal -->
+                        <button id="show-retirar-options"
+                                onclick="document.getElementById('retirar-options').style.display = 'block'; this.style.display='none';"
+                                style="background-color: red; 
+                                    color: white; 
+                                    padding: 10px 20px; 
+                                    border-radius: 8px; 
+                                    margin-top: 20px; 
+                                    font-weight: bold; 
+                                    cursor: pointer; 
+                                    font-size:16px; 
+                                    border: none;">
+                            Retirar producto
+                        </button>
+
+
+                        <!-- Bloque con las opciones al pulsar "Retirar producto" -->
+                        <div id="retirar-options" class="option-block" style="display:none;">
+                            <h3>Que quieres hacer</h3>
+                            
+                            <!-- Opcion A: Retirar sin mas -->
+                            <div class="mb-6">
+                                <h4>Retirar de la venta</h4>
+                                <p>Si ya no deseas vender este producto, puedes retirarlo.</p>
+                                <form method="POST" action="{% url 'products:mark_as_sold_or_withdraw' product.pk %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="withdraw">
+                                    <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                        Retirar
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Opcion B: Marcar como vendido -->
+                            <div>
+                                <h4>Marcar como vendido</h4>
+                                <p>Si se ha concretado la venta con uno de los interesados, selecciona el comprador:</p>
+                                <form method="POST" action="{% url 'products:mark_as_sold_or_withdraw' product.pk %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="sell">
+                                    <select name="buyer" id="buyer" class="w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 mb-4">
+                                        <option value="">--Selecciona un comprador--</option>
+                                        {% for b in buyers %}
+                                            <option value="{{ b.id }}">{{ b.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                                        Confirmar venta
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% elif product.is_sold %}
+                        <p class="text-green-600 mt-4">Este producto esta marcado como vendido.</p>
+                    {% elif product.is_withdrawn %}
+                        <p class="text-red-600 mt-4">Este producto ha sido retirado de la venta.</p>
                     {% endif %}
-                </div>
-                <!-- Botón de reportar contenido inadecuado -->
+                {% endif %}
+
                 <div class="mt-6 text-center">
                     {% if user.is_authenticated and user != product.user %}
                         <a href="{% url 'chat:start_conversation' product.id %}" 
                            class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-                            contactar con vendedor
+                            Pedir informacion
                         </a>
-                        <a href="{% url 'report_product' product.id %}" 
+                        <a href="{% url 'products:report_product' product.id %}" 
                            class="report-btn">
                             Reportar contenido inadecuado
                         </a>
                     {% elif not user.is_authenticated %}
-                        <p class="text-red-500 mt-4">Debes iniciar sesión.</p>
+                        <p class="text-red-500 mt-4">Debes iniciar sesion.</p>
                     {% endif %}
                 </div>
             </div>
@@ -181,16 +239,6 @@
             thumbnails.forEach((thumb, index) => {
                 thumb.classList.toggle('active', index === currentSlide);
             });
-        }
-
-        function nextSlide() {
-            currentSlide = (currentSlide + 1) % slides.length;
-            updateCarousel();
-        }
-
-        function previousSlide() {
-            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-            updateCarousel();
         }
 
         function goToSlide(slideIndex) {

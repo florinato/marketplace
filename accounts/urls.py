@@ -15,4 +15,5 @@ urlpatterns = [
     path('admin/reports/<int:report_id>/resolve/', views.resolve_report, name='resolve_report'),
     path('admin/reviews/', views.admin_review_list, name='admin_review_list'),
     path('admin/reviews/<int:review_id>/delete/', views.delete_review, name='delete_review'),
+    path('user/<int:user_id>/', views.user_profile_detail, name='user_profile_detail'),
 ]

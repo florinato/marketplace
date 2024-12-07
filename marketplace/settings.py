@@ -60,7 +60,7 @@ ROOT_URLCONF = 'marketplace.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'marketplace', 'templates')],  # Incluye la ruta a las plantillas
+        'DIRS': [os.path.join(BASE_DIR, 'marketplace', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

@@ -182,3 +182,22 @@ def delete_review(request, review_id):
     review = get_object_or_404(Rating, pk=review_id)
     review.delete()
     return redirect('admin_review_list')
+
+def user_profile_detail(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    sold_products = Product.objects.filter(user=user, is_sold=True)
+    ratings = Rating.objects.filter(rated=user)
+
+    # Cálculo seguro de la valoración promedio
+    if ratings.exists():
+        average_rating = sum(rating.score for rating in ratings) / len(ratings)
+    else:
+        average_rating = 0  # Valor predeterminado si no hay valoraciones
+
+    context = {
+        'profile_user': user,
+        'sold_products': sold_products,
+        'ratings': ratings,
+        'average_rating': round(average_rating, 1),  # Redondear a un decimal
+    }
+    return render(request, 'accounts/user_profile_detail.html', context)
