@@ -1,4 +1,5 @@
 {% load static %}
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -136,12 +137,15 @@
             <div class="product-details" style="margin-top:20px;">
                 <h2 class="text-3xl font-bold text-gray-800">{{ product.title }}</h2>
                 <p class="text-green-600 font-semibold text-2xl mb-2">{{ product.price }} €</p>
-                <p class="text-gray-500 text-lg mb-4">
-                    Publicado por: 
+                <div class="text-gray-500 text-lg mb-4">
+                    <p>Publicado por:</p>
                     <a href="{% url 'user_profile_detail' user_id=product.user.id %}" class="text-blue-500">
                         <strong>{{ product.user.username }}</strong>
                     </a>
-                </p>
+                    <div class="mt-1">
+                        {{ product.user.profile.average_rating|render_stars|safe }}
+                    </div>
+                </div>
                 
                 <div class="text-gray-700">
                     <h3 class="text-xl font-semibold mb-2">Descripcion</h3>
