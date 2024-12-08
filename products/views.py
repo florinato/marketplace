@@ -161,7 +161,8 @@ def report_product(request, product_id):
             report.reported_user = reported_user
             report.product = product
             report.save()
-            return redirect('product_detail', pk=product.id)
+            return redirect('products:product_detail', pk=product.id)
+
     else:
         form = ReportForm()
 

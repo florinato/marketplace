@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'products',
     'accounts',
     'chat',
+    'marketplace',
 ]
 
 MIDDLEWARE = [

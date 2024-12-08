@@ -11,9 +11,6 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('profile/purchase-history/', views.purchase_history, name='purchase_history'),
     path('profile/sold-products/', views.sold_products, name='sold_products'),
-    path('admin/reports/', views.admin_report_list, name='admin_report_list'),
-    path('admin/reports/<int:report_id>/resolve/', views.resolve_report, name='resolve_report'),
-    path('admin/reviews/', views.admin_review_list, name='admin_review_list'),
-    path('admin/reviews/<int:review_id>/delete/', views.delete_review, name='delete_review'),
     path('user/<int:user_id>/', views.user_profile_detail, name='user_profile_detail'),
+
 ]

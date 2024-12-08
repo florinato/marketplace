@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
@@ -53,7 +54,11 @@ def profile(request):
     tab = request.GET.get('tab', 'info')  # Tab por defecto: 'info'
     action = request.GET.get('action', None)  # Acción actual
 
-    context = {'active_tab': tab}
+    # Determina si el usuario es admin
+    is_admin = request.user.is_staff
+
+    # Contexto inicial
+    context = {'active_tab': tab, 'is_admin': is_admin}
 
     # Tab "info" (Información del usuario)
     if tab == 'info':
@@ -112,8 +117,15 @@ def profile(request):
         ]
         context.update({'conversations': conversations_with_unread})
 
+    # Tab "admin" (Panel de administración)
+    elif tab == 'admin' and is_admin:
+        reports = Report.objects.filter(status='pending').order_by('-created_at')
+        reviews = Rating.objects.all().order_by('-created_at')
+        context.update({'reports': reports, 'reviews': reviews})
+
     # Render de la plantilla con el contexto
     return render(request, 'accounts/profile.html', context)
+
 
 
 # Historial de compras
@@ -138,24 +150,26 @@ def admin_report_list(request):
     return render(request, 'admin/report_list.html', {'reports': reports})
 @login_required
 def resolve_report(request, report_id):
-    if not request.user.is_staff:
-        return redirect('home')
-
     report = get_object_or_404(Report, pk=report_id)
-    action = request.POST.get('action')
 
-    if action == 'resolve':
-        # Marca el producto como bloqueado
-        report.product.is_blocked = True
-        report.product.save()  # Guarda el cambio en el producto
-        report.status = 'resolved'
-        report.save()  # Actualiza el reporte a resuelto
-    elif action == 'dismiss':
-        # Marcar reporte como descartado
-        report.status = 'dismissed'
+    # Solo permitir que admins gestionen reportes
+    if not request.user.is_staff:
+        messages.error(request, "No tienes permiso para realizar esta acción.")
+        return redirect('profile')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'resolve':
+            report.status = 'resolved'
+            messages.success(request, f"El reporte sobre {report.product.title} ha sido resuelto.")
+        elif action == 'dismiss':
+            report.status = 'dismissed'
+            messages.info(request, f"El reporte sobre {report.product.title} ha sido descartado.")
         report.save()
 
-    return redirect('admin_report_list')
+    # Redirigir al perfil con la pestaña de administración activa
+    return redirect(f"{reverse('profile')}?tab=admin")
+
 
 @login_required
 def admin_review_list(request):
@@ -179,16 +193,13 @@ def user_profile_detail(request, user_id):
     sold_products = Product.objects.filter(user=user, is_sold=True)
     ratings = Rating.objects.filter(rated=user)
 
-    # Cálculo seguro de la valoración promedio
-    if ratings.exists():
-        average_rating = sum(rating.score for rating in ratings) / len(ratings)
-    else:
-        average_rating = 0  # Valor predeterminado si no hay valoraciones
+    # Cálculo del promedio usando agregación
+    average_rating = ratings.aggregate(avg_rating=Avg('score'))['avg_rating'] or 0
 
     context = {
         'profile_user': user,
         'sold_products': sold_products,
         'ratings': ratings,
-        'average_rating': round(average_rating, 1),  # Redondear a un decimal
+        'average_rating': round(average_rating, 1),  # Redondeo a un decimal
     }
     return render(request, 'accounts/user_profile_detail.html', context)
