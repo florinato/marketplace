@@ -12,5 +12,5 @@ urlpatterns = [
     path('profile/purchase-history/', views.purchase_history, name='purchase_history'),
     path('profile/sold-products/', views.sold_products, name='sold_products'),
     path('user/<int:user_id>/', views.user_profile_detail, name='user_profile_detail'),
-
+    path('admin/reports/<int:report_id>/resolve/', views.resolve_report, name='resolve_report'),    
 ]

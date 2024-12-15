@@ -195,9 +195,10 @@
                     {% endif %}
                 </div>
 
-            {% elif active_tab == 'admin' %}
+                {% elif active_tab == 'admin' %}
                 <div>
                     <h3 class="text-2xl font-semibold mb-4">Panel de Administración</h3>
+                
                     <!-- Sección de reportes -->
                     <div class="mb-8">
                         <h4 class="text-xl font-bold mb-2">Reportes Pendientes</h4>
@@ -216,17 +217,39 @@
                                 <tbody>
                                     {% for report in reports %}
                                         <tr>
-                                            <td class="border border-gray-300 p-2">{{ report.reporter.username }}</td>
-                                            <td class="border border-gray-300 p-2">{{ report.reported_user.username }}</td>
-                                            <td class="border border-gray-300 p-2"><a href="{% url 'products:product_detail' report.product.id %}">{{ report.product.title }}</a></td>
+                                            <td class="border border-gray-300 p-2">
+                                                <a href="{% url 'user_profile_detail' user_id=report.reporter.id %}" class="text-blue-500 hover:underline">
+                                                    {{ report.reporter.username }}
+                                                </a>
+                                            </td>
+                                            <td class="border border-gray-300 p-2">
+                                                <a href="{% url 'user_profile_detail' user_id=report.reported_user.id %}" class="text-blue-500 hover:underline">
+                                                    {{ report.reported_user.username }}
+                                                </a>
+                                            </td>
+                                            <td class="border border-gray-300 p-2">
+                                                <a href="{% url 'products:product_detail' report.product.id %}" class="text-blue-500 hover:underline">
+                                                    {{ report.product.title }}
+                                                </a>
+                                            </td>
                                             <td class="border border-gray-300 p-2">{{ report.reason }}</td>
                                             <td class="border border-gray-300 p-2">{{ report.created_at }}</td>
                                             <td class="border border-gray-300 p-2">
-                                                <form method="POST" action="{% url 'resolve_report' report.id %}">
-                                                    {% csrf_token %}
-                                                    <button name="action" value="resolve" class="text-green-500 hover:underline">Resolver</button>
-                                                    <button name="action" value="dismiss" class="text-red-500 hover:underline">Descartar</button>
-                                                </form>
+                                                <!-- Botones de acción -->
+                                                <div class="flex flex-col space-y-2">
+                                                    <form method="POST" action="{% url 'resolve_report' report.id %}">
+                                                        {% csrf_token %}
+                                                        <button name="action" value="resolve" class="text-green-500 hover:underline">Resolver</button>
+                                                        <button name="action" value="dismiss" class="text-red-500 hover:underline">Descartar</button>
+                                                    </form>
+                                                    <!-- Enlaces para contactar usuarios -->
+                                                    <a href="{% url 'chat:start_user_conversation' report.reporter.id %}" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                                                        Contactar Reportador
+                                                    </a>
+                                                    <a href="{% url 'chat:start_user_conversation' report.reported_user.id %}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                                        Contactar Reportado
+                                                    </a>
+                                                </div>
                                             </td>
                                         </tr>
                                     {% endfor %}
@@ -234,6 +257,32 @@
                             </table>
                         {% else %}
                             <p class="text-gray-500">No hay reportes pendientes.</p>
+                        {% endif %}
+                    </div>
+                
+                    <!-- Conversaciones administrativas -->
+                    <div class="mb-8">
+                        <h4 class="text-xl font-bold mb-2">Conversaciones Administrativas</h4>
+                        {% if admin_conversations %}
+                            <ul class="space-y-4">
+                                {% for conversation in admin_conversations %}
+                                    <li class="p-4 bg-white rounded shadow-md flex justify-between items-center">
+                                        <div>
+                                            <p class="font-semibold">Conversación con: 
+                                                {% for participant in conversation.participants.all %}
+                                                    {% if participant != user %}
+                                                        {{ participant.username }}
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </p>
+                                            <p class="text-gray-500">{{ conversation.created_at|date:"d/m/Y H:i" }}</p>
+                                        </div>
+                                        <a href="{% url 'chat:admin_conversation_detail' conversation.uuid %}" class="text-blue-500 hover:underline">Ver conversación</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-gray-500">No hay conversaciones administrativas abiertas.</p>
                         {% endif %}
                     </div>
                 </div>

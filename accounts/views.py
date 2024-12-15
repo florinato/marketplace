@@ -1,3 +1,5 @@
+from datetime import timezone
+
 from django import forms
 from django.contrib import messages
 from django.contrib.auth import login
@@ -203,3 +205,4 @@ def user_profile_detail(request, user_id):
         'average_rating': round(average_rating, 1),  # Redondeo a un decimal
     }
     return render(request, 'accounts/user_profile_detail.html', context)
+

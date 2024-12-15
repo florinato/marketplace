@@ -1,73 +1,77 @@
 # chat/views.py
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from accounts.models import Rating
 from products.models import Product
 
-from .models import Conversation, Message
+from .models import AdminConversation, AdminMessage, Conversation, Message
 
 
 @login_required
 def conversation_list(request):
-    """Lista todas las conversaciones del usuario."""
-    conversations = Conversation.objects.filter(participants=request.user)
+    user = request.user
+    conversations = Conversation.objects.filter(participants=user)
+    admin_conversations = AdminConversation.objects.filter(participants=user)
+
     context = {
-        'conversations': [
-            {
-                'conversation': conv,
-                'unread_count': conv.unread_messages_count(request.user),
-            } for conv in conversations
-        ]
+        'conversations': conversations,
+        'admin_conversations': admin_conversations,
     }
     return render(request, 'chat/conversation_list.html', context)
 
+
 @login_required
-def conversation_detail(request, pk):
-    """Muestra y gestiona el detalle de una conversación."""
-    conversation = get_object_or_404(Conversation, pk=pk)
+def conversation_detail(request, pk, is_admin=False):
+    if is_admin:
+        conversation = get_object_or_404(AdminConversation, uuid=pk)
+        messages = AdminMessage.objects.filter(conversation=conversation).order_by('created_at')
+    else:
+        conversation = get_object_or_404(Conversation, id=pk)
+        messages = Message.objects.filter(conversation=conversation).order_by('timestamp')
 
-    # Verificar que el usuario es participante de la conversación
+    # Verificación de participantes
     if request.user not in conversation.participants.all():
-        return JsonResponse({'error': 'No tienes permiso para acceder a esta conversación.'}, status=403)
+        return JsonResponse({'error': 'No autorizado.'}, status=403)
 
-    # Marcar como leídos solo los mensajes no enviados por el usuario actual
-    conversation.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
+    # Marcar mensajes como leídos (solo para conversaciones normales)
+    if not is_admin:
+        conversation.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
 
-    # Recuperar el producto asociado a la conversación
-    product = getattr(conversation, 'product', None)
-
-    # Determinar si el usuario puede valorar al vendedor
-    has_received_ratings = False
-    if product and product.is_sold and product.buyer == request.user:
-        # Comprobar si ya existe una valoración para este vendedor y producto
-        has_received_ratings = Rating.objects.filter(rater=request.user, rated=product.user, product=product).exists()
-
-    # Recuperar todos los mensajes para mostrar en la conversación
-    messages = conversation.messages.all().order_by('timestamp')
-
-    return render(request, 'chat/conversation_detail.html', {
+    context = {
         'conversation': conversation,
         'messages': messages,
-        'product': product,
-        'has_received_ratings': has_received_ratings,
-    })
-
-
+        'is_admin': is_admin,
+    }
+    return render(request, 'chat/conversation_detail.html', context)
 
 @login_required
 def send_message(request, pk):
-    """Envía un nuevo mensaje en una conversación."""
+    """Envía un mensaje en una conversación normal o administrativa."""
     if request.method == 'POST':
-        conversation = get_object_or_404(Conversation, pk=pk, participants=request.user)
-        content = request.POST.get('content')
-        if content:
-            # Crear el mensaje sin marcarlo como leído
-            Message.objects.create(conversation=conversation, sender=request.user, content=content, is_read=False)
-            return redirect('chat:conversation_detail', pk=pk)
+        is_admin = request.GET.get('is_admin', False)
+        if is_admin:
+            conversation = get_object_or_404(AdminConversation, uuid=pk)
+            AdminMessage.objects.create(
+                conversation=conversation,
+                sender=request.user,
+                message=request.POST.get('content')
+            )
+            return redirect('chat:admin_conversation_detail', pk=conversation.uuid)
+        else:
+            conversation = get_object_or_404(Conversation, id=pk, participants=request.user)
+            Message.objects.create(
+                conversation=conversation,
+                sender=request.user,
+                content=request.POST.get('content')
+            )
+            return redirect('chat:conversation_detail', pk=conversation.pk)
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 @login_required
@@ -90,9 +94,6 @@ def start_conversation(request, product_id):
     # Redirigir al detalle de la conversación
     return redirect('chat:conversation_detail', pk=conversation.pk)
 
-from django.shortcuts import get_object_or_404
-
-from chat.models import Conversation
 
 
 @login_required
@@ -129,6 +130,46 @@ def rate_seller(request, pk):
         'product': product,
         'conversation': conversation
     })
+@login_required
+def start_conversation_with_user(request, user_id):
+    """Inicia o redirige a una conversación administrativa."""
+    other_user = get_object_or_404(User, id=user_id)
 
+    # Busca o crea una conversación administrativa
+    conversation, created = Conversation.objects.get_or_create(
+        product=None,
+        defaults={'created_at': timezone.now()}
+    )
+    conversation.participants.add(request.user, other_user)
+
+    # Redirige al detalle de la conversación
+    return redirect('chat:conversation_detail', pk=conversation.pk)
+from .models import AdminConversation, AdminMessage
+
+
+@login_required
+def admin_conversation_list(request):
+    """Lista todas las conversaciones administrativas del administrador."""
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'No tienes permisos para acceder a esta sección'}, status=403)
+
+    conversations = AdminConversation.objects.filter(participants=request.user)
+    context = {
+        'conversations': [
+            {
+                'conversation': conv,
+                'unread_count': conv.messages.filter(is_read=False).exclude(sender=request.user).count()
+            } for conv in conversations
+        ]
+    }
+    return render(request, 'chat/admin_conversation_list.html', context)
+@login_required
+def start_admin_conversation(request, user_id):
+    other_user = get_object_or_404(User, id=user_id)
+    conversation, created = AdminConversation.objects.get_or_create(
+        defaults={'created_at': timezone.now()}
+    )
+    conversation.participants.add(request.user, other_user)
+    return redirect('chat:conversation_detail', pk=conversation.uuid, is_admin=True)
 
 
