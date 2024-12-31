@@ -106,7 +106,7 @@
 <body>
     <div class="chat-container">
         <!-- Botón para volver -->
-        <a href="{% url 'profile' %}?tab=chats" class="back-link">Volver a mis chats</a>
+        <a href="{% url 'accounts:profile' %}?tab=chats" class="back-link">Volver a mis chats</a>
 
         <h1>Chat sobre: {{ conversation.product.title }}</h1>
 

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto">
+    <h2 class="text-2xl font-bold mb-4">Conversaciones Administrativas</h2>
+    {% if conversations %}
+        <ul class="list-disc pl-4">
+            {% for item in conversations %}
+                <li>
+                    <a href="{% url 'admin_chat:admin_conversation_detail' item.conversation.pk %}" class="text-blue-500 hover:underline">
+                        Conversación con {{ item.conversation.participants.exclude(id=request.user.id).first.username }}
+                    </a>
+                    <span class="text-sm text-gray-500">
+                        {% if item.unread_count > 0 %}
+                            ({{ item.unread_count }} mensajes nuevos)
+                        {% endif %}
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-gray-500">No tienes conversaciones administrativas.</p>
+    {% endif %}
+</div>
+{% endblock %}

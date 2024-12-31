@@ -18,21 +18,18 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
 from .views import home
 
 urlpatterns = [
     path('', home, name='home'),
-    path('products/', include('products.urls')),  # Rutas de productos
-    path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
-    path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('products/', include('products.urls')),
     path('accounts/', include('accounts.urls')),
     path('chat/', include('chat.urls', namespace='chat')),
+    path('admin/chat/', include('chat.admin_urls', namespace='admin_chat')),
     path('admin/', admin.site.urls),
-
 ]
-# Servir archivos de medios en modo de desarrollo
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

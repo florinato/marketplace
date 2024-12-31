@@ -2,12 +2,15 @@
 module.exports = {
   content: [
     './templates/**/*.html',
-    './**/templates/**/*.html',
-    './**/*.py',
+    './static/**/*.js',
+    './static/**/*.css',
+    './accounts/templates/accounts/**/*.html',
+    './chat/templates/chat/**/*.html',
+    './products/templates/products/**/*.html',
+    // Añade aquí cualquier otra ruta donde uses clases de Tailwind
   ],
   theme: {
     extend: {},
   },
   plugins: [],
-};
-
+}

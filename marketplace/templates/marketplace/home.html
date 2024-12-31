@@ -16,14 +16,14 @@
             <div class="flex items-center space-x-4">
                 {% if user.is_authenticated %}
                     <!-- Formulario de logout con método POST -->
-                    <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                    <form action="{% url 'accounts:logout' %}" method="post" style="display: inline;">
                         {% csrf_token %}
                         <button type="submit" class="text-gray-600">Logout</button>
                     </form>
                     <a href="#" class="text-gray-600">💬</a>
                     <a href="#" class="text-gray-600">🔔</a>
                 {% else %}
-                    <a href="{% url 'login' %}" class="text-gray-600">Login</a>
+                    <a href="{% url 'accounts:login' %}" class="text-gray-600">Login</a>
                 {% endif %}
             </div>
         </div>
@@ -74,7 +74,7 @@
             <span class="block text-2xl">🔍</span>
             <span class="text-sm">Explorar</span>
         </a>
-        <a href="{% url 'profile' %}?tab=add_product" class="text-center text-green-600">
+        <a href="{% url 'accounts:profile' %}?tab=add_product" class="text-center text-green-600">
             <span class="block text-2xl">➕</span>
             <span class="text-sm">Subir</span>
         </a>

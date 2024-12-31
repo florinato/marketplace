@@ -16,16 +16,53 @@ from .models import AdminConversation, AdminMessage, Conversation, Message
 
 @login_required
 def conversation_list(request):
-    user = request.user
-    conversations = Conversation.objects.filter(participants=user)
-    admin_conversations = AdminConversation.objects.filter(participants=user)
-
+    conversations = Conversation.objects.filter(participants=request.user)
     context = {
-        'conversations': conversations,
-        'admin_conversations': admin_conversations,
+        'conversations': [
+            {
+                'conversation': conv,
+                'unread_count': conv.unread_messages_count(request.user),
+                'product_image': conv.product.image.url if conv.product.image else None,
+            } for conv in conversations
+        ]
     }
     return render(request, 'chat/conversation_list.html', context)
 
+# ... otras vistas ...
+@login_required
+def admin_conversation_list(request):
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'No tienes permisos para acceder a esta sección'}, status=403)
+    conversations = AdminConversation.objects.filter(participants=request.user)
+    context = {
+        'conversations': [
+            {
+                'conversation': conv,
+                'unread_count': conv.messages.filter(is_read=False).exclude(sender=request.user).count()
+            } for conv in conversations
+        ]
+    }
+    return render(request, 'chat/admin_conversation_list.html', context)
+
+@login_required
+def start_conversation(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    if product.user == request.user:
+        return JsonResponse({'error': 'No puedes chatear contigo mismo'}, status=400)
+    conversation = Conversation.objects.filter(product=product, participants=request.user).first()
+    if not conversation:
+        conversation = Conversation.objects.create(product=product)
+        conversation.participants.add(request.user, product.user)
+    return redirect('chat:conversation_detail', pk=conversation.pk)
+
+@login_required
+def start_admin_conversation(request, user_id):
+    other_user = get_object_or_404(User, id=user_id)
+    conversation, created = AdminConversation.objects.get_or_create(
+        defaults={'created_at': timezone.now()}
+    )
+    conversation.participants.add(request.user, other_user)
+    return redirect('admin_chat:admin_conversation_detail', pk=conversation.uuid)
 
 @login_required
 def conversation_detail(request, pk, is_admin=False):
@@ -35,15 +72,10 @@ def conversation_detail(request, pk, is_admin=False):
     else:
         conversation = get_object_or_404(Conversation, id=pk)
         messages = Message.objects.filter(conversation=conversation).order_by('timestamp')
-
-    # Verificación de participantes
     if request.user not in conversation.participants.all():
         return JsonResponse({'error': 'No autorizado.'}, status=403)
-
-    # Marcar mensajes como leídos (solo para conversaciones normales)
     if not is_admin:
         conversation.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
-
     context = {
         'conversation': conversation,
         'messages': messages,
@@ -52,10 +84,8 @@ def conversation_detail(request, pk, is_admin=False):
     return render(request, 'chat/conversation_detail.html', context)
 
 @login_required
-def send_message(request, pk):
-    """Envía un mensaje en una conversación normal o administrativa."""
+def send_message(request, pk, is_admin=False):
     if request.method == 'POST':
-        is_admin = request.GET.get('is_admin', False)
         if is_admin:
             conversation = get_object_or_404(AdminConversation, uuid=pk)
             AdminMessage.objects.create(
@@ -63,7 +93,7 @@ def send_message(request, pk):
                 sender=request.user,
                 message=request.POST.get('content')
             )
-            return redirect('chat:admin_conversation_detail', pk=conversation.uuid)
+            return redirect('admin_chat:admin_conversation_detail', pk=conversation.uuid)
         else:
             conversation = get_object_or_404(Conversation, id=pk, participants=request.user)
             Message.objects.create(
@@ -73,28 +103,6 @@ def send_message(request, pk):
             )
             return redirect('chat:conversation_detail', pk=conversation.pk)
     return JsonResponse({'error': 'Invalid request'}, status=400)
-
-@login_required
-def start_conversation(request, product_id):
-    """Inicia una conversación entre el usuario actual y el vendedor del producto."""
-    product = get_object_or_404(Product, id=product_id)
-
-    # Evitar que el dueño del producto inicie una conversación consigo mismo
-    if product.user == request.user:
-        return JsonResponse({'error': 'No puedes chatear contigo mismo'}, status=400)
-
-    # Buscar una conversación existente
-    conversation = Conversation.objects.filter(product=product, participants=request.user).first()
-
-    if not conversation:
-        # Crear una nueva conversación si no existe
-        conversation = Conversation.objects.create(product=product)
-        conversation.participants.add(request.user, product.user)
-
-    # Redirigir al detalle de la conversación
-    return redirect('chat:conversation_detail', pk=conversation.pk)
-
-
 
 @login_required
 def rate_seller(request, pk):

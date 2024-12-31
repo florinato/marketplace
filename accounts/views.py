@@ -1,5 +1,5 @@
-from datetime import timezone
-
+from accounts.forms import ProfileForm
+from chat.models import AdminConversation, Conversation
 from django import forms
 from django.contrib import messages
 from django.contrib.auth import login
@@ -8,12 +8,8 @@ from django.contrib.auth.models import User
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-
-from accounts.forms import ProfileForm
-from chat.models import Conversation
 from products.forms import ProductForm
-from products.models import Product  # Importa modelos de productos
-from products.models import ProductImage, Report
+from products.models import Product, ProductImage, Report
 
 from .models import Profile, Rating
 
@@ -115,6 +111,7 @@ def profile(request):
             {
                 'conversation': conv,
                 'unread_count': conv.messages.filter(is_read=False).exclude(sender=request.user).count(),
+                'product_image': conv.product.main_image.url if conv.product and conv.product.main_image else None,
             } for conv in conversations
         ]
         context.update({'conversations': conversations_with_unread})
@@ -123,11 +120,11 @@ def profile(request):
     elif tab == 'admin' and is_admin:
         reports = Report.objects.filter(status='pending').order_by('-created_at')
         reviews = Rating.objects.all().order_by('-created_at')
-        context.update({'reports': reports, 'reviews': reviews})
+        admin_conversations = AdminConversation.objects.filter(participants=request.user)
+        context.update({'reports': reports, 'reviews': reviews, 'admin_conversations': admin_conversations})
 
     # Render de la plantilla con el contexto
     return render(request, 'accounts/profile.html', context)
-
 
 
 # Historial de compras
@@ -140,8 +137,9 @@ def purchase_history(request):
 # Productos vendidos
 @login_required
 def sold_products(request):
-    sold_products = Product.objects.filter(user=request.user, sold=True)
+    sold_products = Product.objects.filter(user=request.user, is_sold=True)
     return render(request, 'accounts/sold_products.html', {'products': sold_products})
+
 
 @login_required
 def admin_report_list(request):
@@ -150,6 +148,8 @@ def admin_report_list(request):
 
     reports = Report.objects.filter(status='pending').order_by('-created_at')
     return render(request, 'admin/report_list.html', {'reports': reports})
+
+
 @login_required
 def resolve_report(request, report_id):
     report = get_object_or_404(Report, pk=report_id)
@@ -170,7 +170,7 @@ def resolve_report(request, report_id):
         report.save()
 
     # Redirigir al perfil con la pestaña de administración activa
-    return redirect(f"{reverse('profile')}?tab=admin")
+    return redirect(f"{reverse('accounts:profile')}?tab=admin")
 
 
 @login_required
@@ -181,6 +181,7 @@ def admin_review_list(request):
     reviews = Rating.objects.all().order_by('-created_at')
     return render(request, 'admin/review_list.html', {'reviews': reviews})
 
+
 @login_required
 def delete_review(request, review_id):
     if not request.user.is_staff:
@@ -189,6 +190,7 @@ def delete_review(request, review_id):
     review = get_object_or_404(Rating, pk=review_id)
     review.delete()
     return redirect('admin_review_list')
+
 
 def user_profile_detail(request, user_id):
     user = get_object_or_404(User, id=user_id)
@@ -205,4 +207,3 @@ def user_profile_detail(request, user_id):
         'average_rating': round(average_rating, 1),  # Redondeo a un decimal
     }
     return render(request, 'accounts/user_profile_detail.html', context)
-

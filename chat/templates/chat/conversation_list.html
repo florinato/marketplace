@@ -1,15 +1,15 @@
-<!-- chat/templates/chat/conversation_list.html -->
 {% extends "base.html" %}
 {% block content %}
 <div class="container mx-auto">
     <h2 class="text-2xl font-bold mb-4">Conversaciones</h2>
-
-    <!-- Conversaciones normales -->
-    <h3 class="text-xl font-semibold mt-6 mb-2">Conversaciones normales</h3>
-    {% if normal_conversations %}
+    <h3 class="text-xl font-semibold mt-6 mb-2">Conversaciones de Producto</h3>
+    {% if conversations %}
         <ul class="list-disc pl-4">
-            {% for item in normal_conversations %}
-                <li>
+            {% for item in conversations %}
+                <li class="flex items-center space-x-4">
+                    {% if item.product_image %}
+                        <img src="{{ item.product_image }}" alt="Imagen del producto" class="w-12 h-12 object-cover">
+                    {% endif %}
                     <a href="{% url 'chat:conversation_detail' item.conversation.pk %}" class="text-blue-500 hover:underline">
                         {{ item.conversation.product.title }}
                     </a>
@@ -22,29 +22,7 @@
             {% endfor %}
         </ul>
     {% else %}
-        <p class="text-gray-500">No tienes conversaciones normales.</p>
-    {% endif %}
-
-    <!-- Conversaciones de administrador -->
-    <h3 class="text-xl font-semibold mt-6 mb-2">Conversaciones de Administrador</h3>
-    {% if admin_conversations %}
-        <ul class="list-disc pl-4">
-            {% for item in admin_conversations %}
-                <li>
-                    <a href="{% url 'chat:conversation_detail' item.conversation.pk %}" class="text-blue-500 hover:underline">
-                        Conversación con {{ item.conversation.participants.exclude(id=request.user.id).first.username }}
-                    </a>
-                    <span class="text-sm text-gray-500">
-                        {% if item.unread_count > 0 %}
-                            ({{ item.unread_count }} mensajes nuevos)
-                        {% endif %}
-                    </span>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p class="text-gray-500">No tienes conversaciones de administrador.</p>
+        <p class="text-gray-500">No tienes conversaciones de producto.</p>
     {% endif %}
 </div>
 {% endblock %}
-

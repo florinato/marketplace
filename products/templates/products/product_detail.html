@@ -139,7 +139,7 @@
                 <p class="text-green-600 font-semibold text-2xl mb-2">{{ product.price }} €</p>
                 <div class="text-gray-500 text-lg mb-4">
                     <p>Publicado por:</p>
-                    <a href="{% url 'user_profile_detail' user_id=product.user.id %}" class="text-blue-500">
+                    <a href="{% url 'accounts:user_profile_detail' user_id=product.user.id %}" class="text-blue-500">
                         <strong>{{ product.user.username }}</strong>
                     </a>
                     <div class="mt-1">
