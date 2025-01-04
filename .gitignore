@@ -1,4 +1,7 @@
 # .gitignore
+
+# Codegpt
+.codegpt/
 # Dependencias de Node.js
 node_modules/
 
