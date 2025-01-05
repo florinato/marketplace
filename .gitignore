@@ -1,7 +1,7 @@
 # .gitignore
 # Dependencias de Node.js
 node_modules/
-
+.codegpt/
 # Archivos Python compilados
 *.pyc
 __pycache__/

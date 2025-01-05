@@ -20,12 +20,13 @@
     <div class="container mx-auto my-8 px-4">
         <!-- Información del usuario -->
         <div class="flex items-center space-x-4 mb-8">
-            <img src="{% if user.profile.profile_image %}{{ user.profile.profile_image.url }}{% else %}/media/profile_images/default_profile.jpg{% endif %}" 
-                alt="Foto de perfil"
+            <img src="{% if profile_user.profile.profile_image %}{{ profile_user.profile.profile_image.url }}{% else %}/media/profile_images/default_profile.jpg{% endif %}"
+                alt="Foto de perfil de {{ profile_user.username }}"
                 class="w-16 h-16 rounded-full">
+
             <div>
                 <h2 class="text-3xl font-semibold">{{ profile_user.username }}</h2>
-                <p class="text-gray-600">Valoración promedio: 
+                <p class="text-gray-600">Valoración promedio:
                     <span class="text-yellow-500">
                         {{ average_rating|render_stars|safe }}
                     </span> ({{ average_rating }})

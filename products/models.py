@@ -10,7 +10,8 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="products")
     condition = models.CharField(max_length=50, blank=True, null=True, default="Nuevo")
-    main_image = models.ImageField(upload_to='products/', blank=True, null=True)
+    main_image = models.ImageField(upload_to='products/main_images/', blank=True, null=True)
+
     tags = models.CharField(max_length=100, blank=True, null=True, default="")
     buyer = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name="purchases")
     is_sold = models.BooleanField(default=False)
