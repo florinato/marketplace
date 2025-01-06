@@ -1,4 +1,6 @@
 # chat/views.py
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -10,6 +12,7 @@ from products.models import Product
 
 from .models import Conversation, Message
 
+logger = logging.getLogger(__name__)
 
 @login_required
 def conversation_list(request):
@@ -54,9 +57,8 @@ def conversation_detail(request, pk):
         'messages': messages,
         'product': product,
         'has_received_ratings': has_received_ratings,
+        'buyer': product.buyer,
     })
-
-
 
 @login_required
 def send_message(request, pk):
@@ -90,11 +92,6 @@ def start_conversation(request, product_id):
     # Redirigir al detalle de la conversación
     return redirect('chat:conversation_detail', pk=conversation.pk)
 
-from django.shortcuts import get_object_or_404
-
-from chat.models import Conversation
-
-
 @login_required
 def rate_seller(request, pk):
     # Obtenemos la conversacion por su UUID
@@ -102,9 +99,17 @@ def rate_seller(request, pk):
     product = conversation.product
     seller = product.user
 
+    # Refresh the product object from the database
+    product.refresh_from_db()
+
+    logger.info(f"Rating attempt by user: {request.user.username}, buyer: {product.buyer}, is_sold: {product.is_sold}")
+    if product.buyer:
+        logger.info(f"Product buyer username: {product.buyer.username}")
+    logger.info(f"Request user: {request.user}, Request user username: {request.user.username}")
+
     # Verificar que el request.user es el comprador (product.buyer) y que el producto esta vendido
     if product.buyer != request.user or not product.is_sold:
-        messages.error(request, "No estas autorizado para valorar a este vendedor.")
+        messages.error(request, f"No estas autorizado para valorar a este vendedor. product.buyer: {product.buyer}, request.user: {request.user}, product.is_sold: {product.is_sold}")
         return redirect('chat:conversation_detail', pk=conversation.pk)
 
     # Verificar si ya se ha valorado antes
@@ -129,6 +134,3 @@ def rate_seller(request, pk):
         'product': product,
         'conversation': conversation
     })
-
-
-

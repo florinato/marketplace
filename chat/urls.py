@@ -10,8 +10,8 @@ urlpatterns = [
     path('<uuid:pk>/', views.conversation_detail, name='conversation_detail'),
     path('<uuid:pk>/send/', views.send_message, name='send_message'),
     path('start/<int:product_id>/', views.start_conversation, name='start_conversation'),
-    path('<uuid:pk>/', views.conversation_detail, name='conversation_detail'),
     path('<uuid:pk>/rate_seller/', views.rate_seller, name='rate_seller'),
+ 
 
 
 ]

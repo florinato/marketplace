@@ -66,25 +66,28 @@ def mark_as_sold_or_withdraw(request, pk):
 
             # Asignar comprador
             buyer_id = request.POST.get('buyer')
-            if buyer_id:
-                product.buyer = get_object_or_404(User, pk=buyer_id)
-                product.save()
+            if not buyer_id:
+                messages.error(request, "Debes seleccionar un comprador para marcar el producto como vendido.")
+                return redirect('products:product_detail', pk=product.pk)
 
-                # Crear o buscar conversación
-                conversation, created = Conversation.objects.get_or_create(
-                    product=product
-                )
-                conversation.participants.add(request.user, product.buyer)
+            product.buyer = get_object_or_404(User, pk=buyer_id)
+            product.save()
 
-                # Enviar mensaje automático
-                Message.objects.create(
-                    conversation=conversation,
-                    sender=request.user,
-                    content=(
-                        f"Gracias por tu compra. Por favor, valórame aquí: "
-                        f"<a href='{reverse('chat:rate_seller', args=[conversation.pk])}'>Valorar Vendedor</a>"
-                    )
+            # Crear o buscar conversación
+            conversation, created = Conversation.objects.get_or_create(
+                product=product
+            )
+            conversation.participants.add(request.user, product.buyer)
+
+            # Enviar mensaje automático
+            Message.objects.create(
+                conversation=conversation,
+                sender=request.user,
+                content=(
+                    f"Gracias por tu compra. Por favor, valórame aquí: "
+                    f"<a href='{reverse('chat:rate_seller', args=[conversation.pk])}'>Valorar Vendedor</a>"
                 )
+            )
 
             messages.success(request, "Producto marcado como vendido y comprador asignado.")
 

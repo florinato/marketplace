@@ -111,7 +111,7 @@
         <h1>Chat sobre: {{ conversation.product.title }}</h1>
 
         <!-- Botón para valorar al vendedor -->
-        {% if product and product.is_sold and product.buyer == user and not has_received_ratings %}
+        {% if product and product.is_sold and buyer == user and not has_received_ratings %}
             <div class="mt-4 text-center">
                 <a href="{% url 'chat:rate_seller' conversation.pk %}" class="rate-button">
                     Valorar al vendedor
