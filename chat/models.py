@@ -12,9 +12,13 @@ class Conversation(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='conversations')
     participants = models.ManyToManyField(User, related_name="conversations")
     created_at = models.DateTimeField(auto_now_add=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Conversación sobre {self.product.title} - {self.created_at}"
+
+    def is_closed(self):
+        return self.closed_at is not None
 
     def unread_messages_count(self, user):
         # Contar solo mensajes enviados por otros y no leídos por el usuario actual
@@ -29,4 +33,3 @@ class Message(models.Model):
     is_read = models.BooleanField(default=False)
     def __str__(self):
         return f"Mensaje de {self.sender.username} en {self.conversation.product.title}"
-

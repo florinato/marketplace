@@ -2,10 +2,12 @@
 import logging
 
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from accounts.models import Rating
 from products.models import Product
@@ -13,6 +15,15 @@ from products.models import Product
 from .models import Conversation, Message
 
 logger = logging.getLogger(__name__)
+
+@staff_member_required
+@login_required
+def close_product_conversations(request, product_id):
+    """Cierra todas las conversaciones asociadas a un producto."""
+    conversations = Conversation.objects.filter(product_id=product_id)
+    conversations.update(closed_at=timezone.now())
+    messages.success(request, f"Se cerraron {conversations.count()} conversaciones para el producto con ID {product_id}.")
+    return redirect('chat:conversation_list')
 
 @login_required
 def conversation_list(request):
@@ -65,6 +76,12 @@ def send_message(request, pk):
     """Envía un nuevo mensaje en una conversación."""
     if request.method == 'POST':
         conversation = get_object_or_404(Conversation, pk=pk, participants=request.user)
+        if conversation.is_closed():
+            messages.error(request, "This conversation is closed and you can no longer send messages.")
+            return redirect('chat:conversation_detail', pk=pk)
+        if conversation.product.is_withdrawn:
+            messages.error(request, "This product has been withdrawn and you can no longer send messages.")
+            return redirect('chat:conversation_detail', pk=pk)
         content = request.POST.get('content')
         if content:
             # Crear el mensaje sin marcarlo como leído

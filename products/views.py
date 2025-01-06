@@ -73,9 +73,12 @@ def mark_as_sold_or_withdraw(request, pk):
             product.buyer = get_object_or_404(User, pk=buyer_id)
             product.save()
 
+            # Cerrar conversaciones al vender el producto
+            Conversation.objects.filter(product=product).update(closed_at=timezone.now())
+
             # Crear o buscar conversación
             conversation, created = Conversation.objects.get_or_create(
-                product=product
+                product=product,
             )
             conversation.participants.add(request.user, product.buyer)
 
@@ -93,12 +96,12 @@ def mark_as_sold_or_withdraw(request, pk):
 
         elif action == "withdraw":
             product.is_withdrawn = True
-            product.is_blocked = True
             product.save()
+            # Cerrar conversaciones al retirar el producto
+            Conversation.objects.filter(product=product).update(closed_at=timezone.now())
             messages.success(request, "Producto retirado de la venta.")
 
         return redirect('products:product_detail', pk=product.pk)
-
 
     # Lógica para mostrar el formulario
     buyers = User.objects.filter(

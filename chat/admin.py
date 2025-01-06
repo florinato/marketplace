@@ -11,5 +11,7 @@ class ConversationAdmin(admin.ModelAdmin):
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ('conversation', 'sender', 'timestamp')
+    list_display = ('conversation_id', 'sender', 'timestamp')
     search_fields = ('conversation__product__title', 'sender__username')
+
+

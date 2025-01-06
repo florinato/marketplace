@@ -3,10 +3,15 @@
     {% if conversations %}
         <ul class="space-y-4">
             {% for item in conversations %}
-                <li class="p-4 bg-white rounded shadow-md flex justify-between items-center">
+                <li class="p-4 bg-white rounded shadow-md flex justify-between items-center {% if item.conversation.is_closed %}bg-gray-100 opacity-50{% endif %}">
                     <div>
-                        <p class="font-semibold">Conversación sobre: <span class="text-green-600">{{ item.conversation.product.title }}</span></p>
-                        <p class="text-gray-500">Con: 
+                        <p class="font-semibold">
+                            Conversación sobre: <span class="text-green-600">{{ item.conversation.product.title }}</span>
+                            {% if item.conversation.is_closed %}
+                                <span class="text-red-500">(Cerrada)</span>
+                            {% endif %}
+                        </p>
+                        <p class="text-gray-500">Con:
                             {% for participant in item.conversation.participants.all %}
                                 {% if participant != user %}
                                     {{ participant.username }}
