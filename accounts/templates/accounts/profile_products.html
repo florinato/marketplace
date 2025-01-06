@@ -1,0 +1,14 @@
+<div>
+    <h3 class="text-2xl font-semibold mb-4">Mis Productos</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        {% for product in products %}
+            <div class="bg-white rounded-lg shadow-md p-4">
+                <img src="{{ product.main_image.url }}" alt="{{ product.title }}" class="w-full h-32 object-cover rounded">
+                <h4 class="text-lg font-bold">{{ product.title }}</h4>
+                <p class="text-gray-600">{{ product.price }}€</p>
+                <p class="text-sm {% if product.is_sold %}text-red-500{% endif %}">{{ product.is_sold|yesno:"Vendido,Disponible" }}</p>
+                <a href="{% url 'products:product_detail' product.id %}" class="text-blue-500 mt-2 block">Ver Detalles</a>
+            </div>
+        {% endfor %}
+    </div>
+</div>

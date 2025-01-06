@@ -1,0 +1,36 @@
+{% load custom_filters %}
+
+<div>
+    <h3 class="text-2xl font-semibold mb-4">Información de Usuario</h3>
+    {% if not editing %}
+        <div class="flex items-center space-x-4">
+            <img src="{% if user.profile.profile_image %}{{ user.profile.profile_image.url }}{% else %}/media/profile_images/default_profile.jpg{% endif %}"
+                 alt="Foto de perfil de {{ user.username }}"
+                 class="w-16 h-16 rounded-full border">
+            <div>
+                <p class="text-lg"><strong>Nombre:</strong> {{ user.username }}</p>
+                <p class="text-lg"><strong>Email:</strong> {{ user.email }}</p>
+                <p class="text-gray-600">{{ user.profile.bio|default:"Añade una descripción a tu perfil" }}</p>
+                <p class="text-lg"><strong>Valoración:</strong></p>
+                <div class="rating">
+                    {{ user.profile.average_rating|render_stars|safe }}
+                </div>
+                <a href="?tab=info&action=edit" class="text-blue-500">Editar Perfil</a>
+            </div>
+        </div>
+    {% else %}
+        <form method="POST" enctype="multipart/form-data" class="mt-6">
+            {% csrf_token %}
+            <div class="mb-4">
+                {{ profile_form.bio.label_tag }}
+                {{ profile_form.bio }}
+            </div>
+            <div class="mb-4">
+                {{ profile_form.profile_image.label_tag }}
+                {{ profile_form.profile_image }}
+            </div>
+            <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded">Guardar Cambios</button>
+            <a href="?tab=info" class="px-4 py-2 bg-gray-500 text-white rounded">Cancelar</a>
+        </form>
+    {% endif %}
+</div>

@@ -1,0 +1,16 @@
+<div>
+    <h3 class="text-2xl font-semibold mb-4">Mis Compras</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        {% for purchase in purchases %}
+            <div class="bg-white rounded-lg shadow-md p-4">
+                <img src="{{ purchase.main_image.url }}" alt="{{ purchase.title }}" class="w-full h-32 object-cover rounded">
+                <h4 class="text-lg font-bold">{{ purchase.title }}</h4>
+                <p class="text-gray-600">{{ purchase.price }}€</p>
+                <p class="text-sm text-green-500">Comprado el {{ purchase.sold_date|date:"d/m/Y" }}</p>
+                <a href="{% url 'products:product_detail' purchase.id %}" class="text-blue-500 mt-2 block">Ver Detalles</a>
+            </div>
+        {% empty %}
+            <p class="text-gray-500">No has realizado compras todavía.</p>
+        {% endfor %}
+    </div>
+</div>

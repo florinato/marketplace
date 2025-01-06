@@ -1,0 +1,31 @@
+<div>
+    <h3 class="text-2xl font-semibold mb-4">Chats</h3>
+    {% if conversations %}
+        <ul class="space-y-4">
+            {% for item in conversations %}
+                <li class="p-4 bg-white rounded shadow-md flex justify-between items-center">
+                    <div>
+                        <p class="font-semibold">Conversación sobre: <span class="text-green-600">{{ item.conversation.product.title }}</span></p>
+                        <p class="text-gray-500">Con: 
+                            {% for participant in item.conversation.participants.all %}
+                                {% if participant != user %}
+                                    {{ participant.username }}
+                                {% endif %}
+                            {% endfor %}
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        {% if item.unread_count > 0 %}
+                            <span class="unread-badge">{{ item.unread_count }}</span>
+                        {% else %}
+                            <span class="text-gray-500">Sin mensajes nuevos</span>
+                        {% endif %}
+                        <a href="{% url 'chat:conversation_detail' item.conversation.pk %}" class="text-blue-500 hover:underline">Ver conversación</a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-gray-500">No tienes chats abiertos en este momento.</p>
+    {% endif %}
+</div>
