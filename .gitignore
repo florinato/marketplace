@@ -6,8 +6,7 @@ node_modules/
 *.pyc
 __pycache__/
 
-# Archivos de base de datos SQLite
-*.sqlite3
+
 
 # Archivos específicos del sistema
 .DS_Store
@@ -20,10 +19,6 @@ __pycache__/
 
 # Archivos de logs
 *.log
-
-# Archivos multimedia (excepto un marcador vacío)
-media/*
-!media/.gitkeep
 
 # Entorno virtual de Python
 .venv/
