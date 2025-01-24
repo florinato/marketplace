@@ -25,7 +25,7 @@ from .views import home
 
 urlpatterns = [
     path('', home, name='home'),
-    path('products/', include('products.urls')),  # Rutas de productos
+    path('products/', include('products.urls', namespace='products')), # Rutas de productos
     path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('accounts/', include('accounts.urls')),

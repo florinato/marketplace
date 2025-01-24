@@ -161,7 +161,9 @@ def resolve_report(request, report_id):
         action = request.POST.get('action')
         if action == 'resolve':
             report.status = 'resolved'
-            messages.success(request, f"El reporte sobre {report.product.title} ha sido resuelto.")
+            report.product.is_blocked = True
+            report.product.save()
+            messages.success(request, f"El reporte sobre {report.product.title} ha sido resuelto y el producto ha sido bloqueado.")
         elif action == 'dismiss':
             report.status = 'dismissed'
             messages.info(request, f"El reporte sobre {report.product.title} ha sido descartado.")

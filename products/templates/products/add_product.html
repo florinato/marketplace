@@ -43,7 +43,20 @@
                 <label for="id_price">Precio</label>
                 {{ product_form.price }}
             </div>
-
+             <div class="form-group">
+                <label for="id_condition">Condición</label>
+                {{ product_form.condition }}
+                <select id="id_condition" name="condition" class="form-control">
+                    <option value="nuevo">Nuevo</option>
+                    <option value="usado">Usado</option>
+                    <option value="como_nuevo">Como nuevo</option>
+                    <option value="reacondicionado">Reacondicionado</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="id_tags">Tags</label>
+                {{ product_form.tags }}
+            </div>
             <!-- Sección de fotos -->
             <div class="section">
                 <div class="section-title">Fotos</div>
