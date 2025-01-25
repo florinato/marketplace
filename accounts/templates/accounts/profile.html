@@ -48,7 +48,7 @@
         <nav class="flex space-x-4 mb-6">
             <a href="?tab=info" class="py-2 px-4 {% if active_tab == 'info' %}active-tab{% endif %}">Mi Perfil</a>
             <a href="?tab=products" class="py-2 px-4 {% if active_tab == 'products' %}active-tab{% endif %}">Mis Productos</a>
-<a href="{% url 'products:add_product' %}?tab=add_product" class="py-2 px-4 {% if active_tab == 'add_product' %}active-tab{% endif %}">Subir Producto</a>
+<a href="?tab=add_product" class="py-2 px-4 {% if active_tab == 'add_product' %}active-tab{% endif %}">Subir Producto</a>
             <a href="?tab=purchases" class="py-2 px-4 {% if active_tab == 'purchases' %}active-tab{% endif %}">Mis Compras</a>
             <a href="?tab=chats" class="py-2 px-4 {% if active_tab == 'chats' %}active-tab{% endif %}">Chats</a>
             {% if is_admin %}

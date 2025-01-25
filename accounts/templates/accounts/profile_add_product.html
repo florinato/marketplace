@@ -43,7 +43,7 @@
         <label class="relative w-32 h-32 bg-gray-200 border rounded flex items-center justify-center cursor-pointer overflow-hidden">
             <input 
                 type="file" 
-                name="images"
+                name="images_{{ forloop.counter }}"
                 accept="image/*"
                 class="absolute inset-0 opacity-0 cursor-pointer"
                 onchange="previewImage(event, 'preview-{{ forloop.counter }}')"

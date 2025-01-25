@@ -12,21 +12,14 @@ def product_list(request):
     products = Product.objects.filter(is_withdrawn=False, is_sold=False, is_blocked=False)
     return render(request, 'products/product_list.html', {'products': products})
 
+from products.models import ProductImage
+
+
 def product_detail(request, pk):
     product = Product.objects.get(pk=pk)
-    return render(request, 'products/product_detail.html', {'product': product})
+    images = ProductImage.objects.filter(product=product)
+    return render(request, 'products/product_detail.html', {'product': product, 'images': images})
 
-def add_product(request):
-    if request.method == 'POST':
-        product_form = ProductForm(request.POST, request.FILES)
-        if product_form.is_valid():
-            product = product_form.save(commit=False)
-            product.user = request.user  # Asigna el usuario actual
-            product.save()
-            return render(request, 'products/product_list.html')  # Redirect a product list
-    else:
-        product_form = ProductForm()
-    return render(request, 'products/add_product.html', {'product_form': product_form})
 
 def get_products_api(request):
     products = Product.objects.all()

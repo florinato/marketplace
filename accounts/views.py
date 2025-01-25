@@ -91,9 +91,9 @@ def profile(request):
                 product.user = request.user
                 product.save()
 
-                images = request.FILES.getlist('images')
-                for img in images:
-                    ProductImage.objects.create(product=product, image=img)
+                for key, img in request.FILES.items():
+                    if key.startswith('images_'):
+                        ProductImage.objects.create(product=product, image=img)
 
                 messages.success(request, "Producto subido con éxito.")
                 return redirect(f"{reverse('profile')}?tab=products")
