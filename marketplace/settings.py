@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'accounts',
     'chat',
     'marketplace',
+    'corsheaders', # Add corsheaders
 ]
 
 MIDDLEWARE = [
@@ -54,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'marketplace.urls'
@@ -132,3 +134,12 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True # Disable CORS in development
+else:
+    CORS_ALLOWED_ORIGINS = [ # Configure allowed origins for production
+        'https://your-production-domain.com',
+        'https://another-domain.com',
+    ]

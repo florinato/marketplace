@@ -25,11 +25,15 @@ class RegisterForm(forms.ModelForm):
         fields = ['username', 'email', 'password']
 
 
+from django.views.decorators.csrf import csrf_exempt
+
+
+@csrf_exempt
 def register(request):
     token = request.GET.get('token', '')
-    if token != 'invitacion':
-        messages.error(request, "Token de invitación no válido.")
-        return redirect('home')
+    # if token != 'invitacion':
+    #     messages.error(request, "Token de invitación no válido.")
+    #     # return redirect('home')
 
     if request.method == 'POST':
         form = RegisterForm(request.POST)
